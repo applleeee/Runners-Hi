@@ -2,27 +2,26 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useSignup } from "@/lib/hooks/useSignup";
+import { useLogin } from "@/lib/hooks/useLogin";
 import Link from "next/link";
 import { useState } from "react";
 
-export default function SignupPage() {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
 
-  const { handleSignup, loading, error } = useSignup();
+  const { handleLogin, loading, error } = useLogin();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSignup(email, password, nickname);
+    await handleLogin(email, password);
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center p-4">
       <form onSubmit={onSubmit} className="w-full max-w-md space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">회원가입</h1>
+          <h1 className="text-3xl font-bold">로그인</h1>
           <p className="text-gray-500">
             Runner&apos;s Hi에 오신 것을 환영합니다
           </p>
@@ -50,23 +49,9 @@ export default function SignupPage() {
             <Input
               id="password"
               type="password"
-              placeholder="6자 이상"
+              placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="nickname" className="text-sm font-medium">
-              닉네임
-            </label>
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="2~20자 (한글, 영문, 숫자, _, -)"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
               required
             />
           </div>
@@ -79,16 +64,16 @@ export default function SignupPage() {
         )}
 
         <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "처리중..." : "회원가입"}
+          {loading ? "처리중..." : "로그인"}
         </Button>
 
         <div className="text-center text-sm">
-          <span className="text-gray-500">이미 계정이 있으신가요? </span>
+          <span className="text-gray-500">계정이 없으신가요? </span>
           <Link
-            href="/login"
+            href="/signup"
             className="font-medium text-blue-600 hover:text-blue-500"
           >
-            로그인
+            회원가입
           </Link>
         </div>
       </form>
