@@ -44,7 +44,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text)"
+              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
             <Input
@@ -54,7 +54,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text)"
+              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
             {error && (
