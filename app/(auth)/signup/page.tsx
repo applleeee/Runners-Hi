@@ -1,97 +1,82 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { BottomButton } from "@/components/common/BottomButton";
+import { Header } from "@/components/common/Header";
 import { Input } from "@/components/ui/input";
 import { useSignup } from "@/lib/hooks/useSignup";
-import Link from "next/link";
 import { useState } from "react";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [nickname, setNickname] = useState("");
 
   const { handleSignup, loading, error } = useSignup();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await handleSignup(email, password, nickname);
+    await handleSignup(email, password);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <form onSubmit={onSubmit} className="w-full max-w-md space-y-6">
-        <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">회원가입</h1>
-          <p className="text-gray-500">
-            Runner&apos;s Hi에 오신 것을 환영합니다
-          </p>
-        </div>
+    <div className="flex min-h-screen flex-col bg-(--bg)">
+      <Header variant="back" title="회원가입" />
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium">
-              이메일
-            </label>
+      {/* Main Content */}
+      <main className="flex flex-1 flex-col">
+        <div className="flex flex-1 flex-col justify-center px-6">
+          {/* Logo Section */}
+          <div className="mb-12 flex flex-col items-center justify-center space-y-2">
+            <p className="text-sm font-semibold text-(--sub-text)">
+              당신의 러닝의 일상으로
+            </p>
+            <h2 className="text-2xl font-bold text-(--black)">
+              Runner&apos;s Hi
+            </h2>
+          </div>
+
+          {/* Form Inputs */}
+          <div className="space-y-4">
             <Input
               id="email"
               type="email"
-              placeholder="email@example.com"
+              placeholder="이메일 아이디 입력"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text)"
             />
-          </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              비밀번호
-            </label>
             <Input
               id="password"
               type="password"
-              placeholder="6자 이상"
+              placeholder="비밀번호 입력"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text)"
             />
+
+            {error && (
+              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+                {error}
+              </div>
+            )}
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="nickname" className="text-sm font-medium">
-              닉네임
-            </label>
-            <Input
-              id="nickname"
-              type="text"
-              placeholder="2~20자 (한글, 영문, 숫자, _, -)"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              required
-            />
+          {/* Info Text */}
+          <div className="mt-8 space-y-1 text-center text-xs text-(--sub-text)">
+            <p>러너스하이에 회원가입하여</p>
+            <p>당신의 러닝을 일상에 기록해 보세요.</p>
           </div>
         </div>
 
-        {error && (
-          <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-            {error}
-          </div>
-        )}
-
-        <Button type="submit" disabled={loading} className="w-full">
-          {loading ? "처리중..." : "회원가입"}
-        </Button>
-
-        <div className="text-center text-sm">
-          <span className="text-gray-500">이미 계정이 있으신가요? </span>
-          <Link
-            href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            로그인
-          </Link>
-        </div>
-      </form>
+        {/* Submit Button - Fixed at Bottom */}
+        <form onSubmit={onSubmit}>
+          <BottomButton type="submit" disabled={loading} variant="unselect">
+            {loading ? "처리중..." : "회원가입"}
+          </BottomButton>
+        </form>
+      </main>
     </div>
   );
 }

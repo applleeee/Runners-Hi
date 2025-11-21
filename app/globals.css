@@ -44,6 +44,15 @@
 }
 
 :root {
+  /* Project Colors */
+  --key-color: #06f712;
+  --sub-color: #dfffd5;
+  --black: #000000;
+  --sub-text: #6e6e6e;
+  --unselect: #bfbfbf;
+  --bg: #f8f8f8;
+  --white: #ffffff;
+
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

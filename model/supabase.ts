@@ -34,6 +34,100 @@ export type Database = {
   }
   public: {
     Tables: {
+      Content: {
+        Row: {
+          comment: string
+          created_at: string
+          end_location: string
+          end_time: string
+          gpx_data: Json
+          id: string
+          image_url: string
+          main_location: string
+          start_location: string
+          start_time: string
+          title: string
+          total_distance: number
+          type_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          end_location: string
+          end_time: string
+          gpx_data: Json
+          id?: string
+          image_url: string
+          main_location: string
+          start_location: string
+          start_time: string
+          title: string
+          total_distance: number
+          type_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          end_location?: string
+          end_time?: string
+          gpx_data?: Json
+          id?: string
+          image_url?: string
+          main_location?: string
+          start_location?: string
+          start_time?: string
+          title?: string
+          total_distance?: number
+          type_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Content_type_id_fkey"
+            columns: ["type_id"]
+            isOneToOne: false
+            referencedRelation: "ContentType"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ContentType: {
+        Row: {
+          created_at: string
+          depth: number
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          depth?: number
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          depth?: number
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ContentType_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "ContentType"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       User: {
         Row: {
           created_at: string
