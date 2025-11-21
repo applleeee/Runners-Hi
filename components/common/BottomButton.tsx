@@ -25,9 +25,9 @@ export function BottomButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "h-14 w-full cursor-pointer text-xl font-semibold leading-none text-white",
-        variant === "primary" && "bg-(--key-color)",
-        variant === "unselect" && "bg-(--unselect) disabled:opacity-50",
+        "h-14 w-full cursor-pointer text-xl font-semibold leading-none",
+        variant === "primary" && "bg-(--key-color) text-(--black)",
+        variant === "unselect" && "bg-(--unselect) text-white disabled:opacity-50",
         disabled && "cursor-not-allowed",
         className
       )}

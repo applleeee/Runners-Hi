@@ -18,13 +18,21 @@ type HeaderProps =
       title: string;
       onBack?: () => void;
       onClose?: () => void;
+    }
+  | {
+      variant: "close";
+      title: string;
+      onClose?: () => void;
     };
 
 export function Header(props: HeaderProps) {
   const router = useRouter();
 
   const handleBack = () => {
-    if (props.variant !== "main" && props.onBack) {
+    if (
+      (props.variant === "back" || props.variant === "back-close") &&
+      props.onBack
+    ) {
       props.onBack();
     } else {
       router.back();
@@ -32,8 +40,13 @@ export function Header(props: HeaderProps) {
   };
 
   const handleClose = () => {
-    if (props.variant === "back-close" && props.onClose) {
+    if (
+      (props.variant === "back-close" || props.variant === "close") &&
+      props.onClose
+    ) {
       props.onClose();
+    } else {
+      router.back();
     }
   };
 
@@ -94,6 +107,22 @@ export function Header(props: HeaderProps) {
           type="button"
           onClick={handleClose}
           className="ml-4"
+          aria-label="닫기"
+        >
+          <X className="h-6 w-6 text-(--black)" />
+        </button>
+      </header>
+    );
+  }
+
+  if (props.variant === "close") {
+    return (
+      <header className="relative flex items-center justify-center bg-white px-4 py-4">
+        <h1 className="text-lg font-bold text-(--black)">{props.title}</h1>
+        <button
+          type="button"
+          onClick={handleClose}
+          className="absolute right-4"
           aria-label="닫기"
         >
           <X className="h-6 w-6 text-(--black)" />

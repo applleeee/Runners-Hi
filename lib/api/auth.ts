@@ -32,3 +32,15 @@ export async function signOut() {
 
   if (error) throw error
 }
+
+/**
+ * 현재 로그인한 사용자 정보를 가져옵니다.
+ */
+export async function getCurrentUser() {
+  const supabase = createClient()
+
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error) throw error
+  return user
+}
