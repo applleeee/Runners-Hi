@@ -1,10 +1,29 @@
 import { PlaceResult } from "@/components/features/running/PlaceSearch";
-import { GpxData } from "@/lib/utils/gpx-parser";
 import { createClient } from "@/lib/supabase/client";
+import { GpxData } from "@/lib/utils/gpx-parser";
 
 export interface ContentType {
   id: number;
   name: string;
+}
+
+export interface Location {
+  id: number;
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  kakaoPlaceId: string | null;
+}
+
+export interface FeedContent {
+  id: string;
+  title: string;
+  totalDistance: number;
+  pace: number;
+  imageUrl?: string;
+  typeName: string;
+  locationName: string;
 }
 
 export interface CreateContentParams {
@@ -39,6 +58,69 @@ export async function getContentTypesByParentId(
 }
 
 /**
+ * Location 테이블에 장소를 upsert하고 ID를 반환합니다.
+ * kakao_place_id가 있으면 해당 값으로, 없으면 name으로 중복 체크합니다.
+ */
+async function upsertLocation(place: PlaceResult): Promise<number> {
+  const supabase = createClient();
+
+  // 1. 먼저 kakao_place_id로 기존 데이터 조회
+  if (place.kakaoPlaceId) {
+    const { data: existing } = await supabase
+      .from("Location")
+      .select("id")
+      .eq("kakao_place_id", place.kakaoPlaceId)
+      .single();
+
+    if (existing) return existing.id;
+  }
+
+  // 2. kakao_place_id가 없거나 못 찾은 경우, name으로 조회
+  const { data: existingByName } = await supabase
+    .from("Location")
+    .select("id")
+    .eq("name", place.placeName)
+    .single();
+
+  if (existingByName) return existingByName.id;
+
+  // 3. 새로운 Location 생성
+  const { data, error } = await supabase
+    .from("Location")
+    .insert({
+      name: place.placeName,
+      address: place.address,
+      lat: place.lat,
+      lng: place.lng,
+      kakao_place_id: place.kakaoPlaceId,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  return data.id;
+}
+
+/**
+ * ContentLocation 중간 테이블에 장소를 연결합니다.
+ */
+async function createContentLocation(
+  contentId: string,
+  locationId: number,
+  type: "main" | "start" | "end"
+): Promise<void> {
+  const supabase = createClient();
+
+  const { error } = await supabase.from("ContentLocation").insert({
+    content_id: contentId,
+    location_id: locationId,
+    type,
+  });
+
+  if (error) throw error;
+}
+
+/**
  * 새로운 콘텐츠를 생성합니다.
  */
 export async function createContent(
@@ -58,19 +140,25 @@ export async function createContent(
     comment,
   } = params;
 
+  // 1. Location upsert 후 ID 획득
+  const mainLocationId = await upsertLocation(mainLocation);
+  const startLocationId = startLocation
+    ? await upsertLocation(startLocation)
+    : null;
+  const endLocationId = endLocation ? await upsertLocation(endLocation) : null;
+
+  // 2. Content 생성
   const { data, error } = await supabase
     .from("Content")
     .insert({
       user_id: userId,
       title,
       type_id: typeId,
-      main_location: mainLocation.placeName,
-      start_location: startLocation?.placeName || null,
-      end_location: endLocation?.placeName || null,
       gpx_data: gpxData,
       start_time: gpxData.startTime?.toISOString() || new Date().toISOString(),
       end_time: gpxData.endTime?.toISOString() || new Date().toISOString(),
       total_distance: gpxData.totalDistance,
+      pace: gpxData.pace,
       image_urls: imageUrls,
       comment: comment || null,
     })
@@ -78,5 +166,172 @@ export async function createContent(
     .single();
 
   if (error) throw error;
-  return data.id;
+
+  const contentId = data.id;
+
+  // 3. ContentLocation 중간 테이블에 연결
+  await createContentLocation(contentId, mainLocationId, "main");
+
+  if (startLocationId) {
+    await createContentLocation(contentId, startLocationId, "start");
+  }
+
+  if (endLocationId) {
+    await createContentLocation(contentId, endLocationId, "end");
+  }
+
+  return contentId;
+}
+
+/**
+ * main 타입으로 등록된 Location 목록을 가나다순으로 가져옵니다.
+ * (드롭다운 필터용)
+ */
+export async function getMainLocations(): Promise<Location[]> {
+  const supabase = createClient();
+
+  // ContentLocation에서 type='main'인 location_id 목록 조회 후
+  // Location 테이블과 조인하여 가나다순 정렬
+  const { data, error } = await supabase
+    .from("ContentLocation")
+    .select(
+      `
+      Location (
+        id,
+        name,
+        address,
+        lat,
+        lng,
+        kakao_place_id
+      )
+    `
+    )
+    .eq("type", "main");
+
+  if (error) throw error;
+
+  // 중복 제거 및 Location 형태로 변환
+  const locationMap = new Map<number, Location>();
+
+  for (const item of data || []) {
+    // Supabase 관계 쿼리 결과는 1:1 관계에서도 타입이 배열 또는 객체로 올 수 있음
+    const loc = item.Location as unknown as {
+      id: number;
+      name: string;
+      address: string | null;
+      lat: number | null;
+      lng: number | null;
+      kakao_place_id: string | null;
+    } | null;
+
+    if (loc && !locationMap.has(loc.id)) {
+      locationMap.set(loc.id, {
+        id: loc.id,
+        name: loc.name,
+        address: loc.address,
+        lat: loc.lat,
+        lng: loc.lng,
+        kakaoPlaceId: loc.kakao_place_id,
+      });
+    }
+  }
+
+  // 가나다순 정렬
+  return Array.from(locationMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "ko")
+  );
+}
+
+export interface GetContentsParams {
+  locationId?: number | null;
+  typeIds?: number[];
+  distanceMin?: number | null;
+  distanceMax?: number | null;
+  limit: number;
+  offset: number;
+}
+
+/**
+ * 콘텐츠 목록을 필터링하여 가져옵니다.
+ * (무한 스크롤용)
+ */
+export async function getContents(
+  params: GetContentsParams
+): Promise<FeedContent[]> {
+  const supabase = createClient();
+
+  const { locationId, typeIds, distanceMin, distanceMax, limit, offset } =
+    params;
+
+  // 기본 쿼리: Content + ContentType 조인
+  let query = supabase
+    .from("Content")
+    .select(
+      `
+      id,
+      title,
+      total_distance,
+      pace,
+      image_urls,
+      ContentType (
+        name
+      ),
+      ContentLocation!inner (
+        type,
+        Location (
+          name
+        )
+      )
+    `
+    )
+    .eq("ContentLocation.type", "main");
+
+  // locationId 필터
+  if (locationId) {
+    query = query.eq("ContentLocation.location_id", locationId);
+  }
+
+  // typeIds 필터
+  if (typeIds && typeIds.length > 0) {
+    query = query.in("type_id", typeIds);
+  }
+
+  // 거리 필터
+  if (distanceMin !== null && distanceMin !== undefined) {
+    query = query.gte("total_distance", distanceMin);
+  }
+  if (distanceMax !== null && distanceMax !== undefined) {
+    query = query.lte("total_distance", distanceMax);
+  }
+
+  // 페이지네이션 및 정렬
+  query = query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  // FeedContent 형태로 변환
+  return (data || []).map((item) => {
+    const contentType = item.ContentType as unknown as { name: string } | null;
+    const contentLocations = item.ContentLocation as unknown as Array<{
+      type: string;
+      Location: { name: string } | null;
+    }>;
+
+    // main 타입의 location 찾기
+    const mainLocation = contentLocations?.find((cl) => cl.type === "main");
+
+    return {
+      id: item.id,
+      title: item.title,
+      totalDistance: item.total_distance ?? 0,
+      pace: item.pace ?? 0,
+      imageUrl: item.image_urls?.[0] ?? undefined,
+      typeName: contentType?.name ?? "",
+      locationName: mainLocation?.Location?.name ?? "",
+    };
+  });
 }

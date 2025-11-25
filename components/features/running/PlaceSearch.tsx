@@ -10,6 +10,10 @@ interface PlaceSearchProps {
 
 export interface PlaceResult {
   placeName: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  kakaoPlaceId: string | null;
 }
 
 // 카카오맵 SDK가 이미 로드되었는지 확인
@@ -177,6 +181,10 @@ export function PlaceSearch({ isOpen, onClose, onSelect }: PlaceSearchProps) {
   const handleSelectPlace = (place: kakao.maps.services.PlaceSearchResult) => {
     onSelect({
       placeName: place.place_name,
+      address: place.road_address_name || place.address_name || null,
+      lat: place.y ? parseFloat(place.y) : null,
+      lng: place.x ? parseFloat(place.x) : null,
+      kakaoPlaceId: place.id || null,
     });
   };
 

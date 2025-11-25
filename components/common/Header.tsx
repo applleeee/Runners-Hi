@@ -61,11 +61,13 @@ export function Header(props: HeaderProps) {
   if (props.variant === "main") {
     return (
       <header className="relative flex items-center justify-center bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-(--black)">러너스 하이</h1>
+        <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
+          러너스 하이
+        </h1>
         <button
           type="button"
           onClick={handleMyClick}
-          className="absolute right-4 text-base font-medium text-(--black)"
+          className="absolute right-4 shrink-0 whitespace-nowrap text-base font-medium text-(--black)"
         >
           MY
         </button>
@@ -79,12 +81,14 @@ export function Header(props: HeaderProps) {
         <button
           type="button"
           onClick={handleBack}
-          className="absolute left-4"
+          className="absolute left-4 shrink-0"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="h-6 w-6 text-(--black)" />
         </button>
-        <h1 className="text-lg font-bold text-(--black)">{props.title}</h1>
+        <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
+          {props.title}
+        </h1>
       </header>
     );
   }
@@ -95,18 +99,18 @@ export function Header(props: HeaderProps) {
         <button
           type="button"
           onClick={handleBack}
-          className="mr-4"
+          className="mr-4 shrink-0"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="h-6 w-6 text-(--black)" />
         </button>
-        <h1 className="flex-1 text-center text-lg font-medium text-(--black)">
+        <h1 className="flex-1 truncate text-center text-lg font-medium text-(--black)">
           {props.title}
         </h1>
         <button
           type="button"
           onClick={handleClose}
-          className="ml-4"
+          className="ml-4 shrink-0"
           aria-label="닫기"
         >
           <X className="h-6 w-6 text-(--black)" />
@@ -118,11 +122,13 @@ export function Header(props: HeaderProps) {
   if (props.variant === "close") {
     return (
       <header className="relative flex items-center justify-center bg-white px-4 py-4">
-        <h1 className="text-lg font-bold text-(--black)">{props.title}</h1>
+        <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
+          {props.title}
+        </h1>
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4"
+          className="absolute right-4 shrink-0"
           aria-label="닫기"
         >
           <X className="h-6 w-6 text-(--black)" />

@@ -36,52 +36,49 @@ export type Database = {
     Tables: {
       Content: {
         Row: {
-          comment: string
+          comment: string | null
           created_at: string
-          end_location: string
           end_time: string
           gpx_data: Json
           id: string
-          image_url: string
-          main_location: string
-          start_location: string
+          image_urls: string[]
+          pace: number
           start_time: string
           title: string
           total_distance: number
-          type_id: string
+          type_id: number
           updated_at: string | null
+          user_id: string
         }
         Insert: {
-          comment: string
+          comment?: string | null
           created_at?: string
-          end_location: string
           end_time: string
           gpx_data: Json
           id?: string
-          image_url: string
-          main_location: string
-          start_location: string
+          image_urls?: string[]
+          pace: number
           start_time: string
           title: string
           total_distance: number
-          type_id: string
+          type_id: number
           updated_at?: string | null
+          user_id?: string
         }
         Update: {
-          comment?: string
+          comment?: string | null
           created_at?: string
-          end_location?: string
           end_time?: string
           gpx_data?: Json
           id?: string
-          image_url?: string
-          main_location?: string
-          start_location?: string
+          image_urls?: string[]
+          pace?: number
           start_time?: string
           title?: string
           total_distance?: number
-          type_id?: string
+          type_id?: number
           updated_at?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -91,31 +88,77 @@ export type Database = {
             referencedRelation: "ContentType"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "Content_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ContentLocation: {
+        Row: {
+          content_id: string
+          created_at: string
+          id: number
+          location_id: number
+          type: string
+        }
+        Insert: {
+          content_id: string
+          created_at?: string
+          id?: number
+          location_id: number
+          type: string
+        }
+        Update: {
+          content_id?: string
+          created_at?: string
+          id?: number
+          location_id?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ContentLocation_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "Content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ContentLocation_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "Location"
+            referencedColumns: ["id"]
+          },
         ]
       }
       ContentType: {
         Row: {
           created_at: string
           depth: number
-          id: string
+          id: number
           name: string
-          parent_id: string | null
+          parent_id: number | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string
           depth?: number
-          id?: string
+          id?: number
           name: string
-          parent_id?: string | null
+          parent_id?: number | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string
           depth?: number
-          id?: string
+          id?: number
           name?: string
-          parent_id?: string | null
+          parent_id?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -127,6 +170,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      Location: {
+        Row: {
+          address: string | null
+          created_at: string
+          id: number
+          kakao_place_id: string | null
+          lat: number | null
+          lng: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          id?: number
+          kakao_place_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          id?: number
+          kakao_place_id?: string | null
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       User: {
         Row: {

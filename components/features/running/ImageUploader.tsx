@@ -24,8 +24,8 @@ export function ImageUploader({
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
+    const selectedFiles = Array.from(e.target.files || []);
+    if (selectedFiles.length === 0) return;
 
     // 최대 개수 체크
     const remainingSlots = maxImages - images.length;
@@ -42,7 +42,7 @@ export function ImageUploader({
     const validFiles: File[] = [];
     const errors: string[] = [];
 
-    for (const file of files) {
+    for (const file of selectedFiles) {
       // 파일 타입 검증
       if (!allowedTypes.includes(file.type)) {
         errors.push(`${file.name}: JPG, PNG 형식만 업로드 가능합니다.`);
