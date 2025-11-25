@@ -26,6 +26,27 @@ export interface FeedContent {
   locationName: string;
 }
 
+export interface ContentDetail {
+  id: string;
+  title: string;
+  comment: string | null;
+  gpxData: GpxData;
+  imageUrls: string[];
+  totalDistance: number;
+  pace: number;
+  startTime: Date | null;
+  endTime: Date | null;
+  typeName: string;
+  mainLocation: Location;
+  startLocation: Location | null;
+  endLocation: Location | null;
+  user: {
+    id: string;
+    nickname: string;
+  };
+  createdAt: Date;
+}
+
 export interface CreateContentParams {
   userId: string;
   title: string;
@@ -334,4 +355,124 @@ export async function getContents(
       locationName: mainLocation?.Location?.name ?? "",
     };
   });
+}
+
+/**
+ * ID로 특정 콘텐츠의 상세 정보를 가져옵니다.
+ */
+export async function getContentById(id: string): Promise<ContentDetail> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("Content")
+    .select(
+      `
+      id,
+      title,
+      comment,
+      gpx_data,
+      image_urls,
+      total_distance,
+      pace,
+      start_time,
+      end_time,
+      created_at,
+      ContentType!inner (
+        name
+      ),
+      User!inner (
+        id,
+        nickname
+      ),
+      ContentLocation!inner (
+        type,
+        Location!inner (
+          id,
+          name,
+          address,
+          lat,
+          lng,
+          kakao_place_id
+        )
+      )
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error("Content not found");
+
+  // ContentLocation 배열을 타입별로 분류
+  const contentLocations = data.ContentLocation as unknown as Array<{
+    type: string;
+    Location: {
+      id: number;
+      name: string;
+      address: string | null;
+      lat: number | null;
+      lng: number | null;
+      kakao_place_id: string | null;
+    } | null;
+  }>;
+
+  const mainLocationData = contentLocations?.find((cl) => cl.type === "main")
+    ?.Location;
+  const startLocationData = contentLocations?.find((cl) => cl.type === "start")
+    ?.Location;
+  const endLocationData = contentLocations?.find((cl) => cl.type === "end")
+    ?.Location;
+
+  if (!mainLocationData) {
+    throw new Error("Main location not found");
+  }
+
+  const contentType = data.ContentType as unknown as { name: string };
+  const user = data.User as unknown as { id: string; nickname: string };
+
+  return {
+    id: data.id,
+    title: data.title,
+    comment: data.comment,
+    gpxData: data.gpx_data as GpxData,
+    imageUrls: data.image_urls || [],
+    totalDistance: data.total_distance,
+    pace: data.pace,
+    startTime: data.start_time ? new Date(data.start_time) : null,
+    endTime: data.end_time ? new Date(data.end_time) : null,
+    typeName: contentType.name,
+    mainLocation: {
+      id: mainLocationData.id,
+      name: mainLocationData.name,
+      address: mainLocationData.address,
+      lat: mainLocationData.lat,
+      lng: mainLocationData.lng,
+      kakaoPlaceId: mainLocationData.kakao_place_id,
+    },
+    startLocation: startLocationData
+      ? {
+          id: startLocationData.id,
+          name: startLocationData.name,
+          address: startLocationData.address,
+          lat: startLocationData.lat,
+          lng: startLocationData.lng,
+          kakaoPlaceId: startLocationData.kakao_place_id,
+        }
+      : null,
+    endLocation: endLocationData
+      ? {
+          id: endLocationData.id,
+          name: endLocationData.name,
+          address: endLocationData.address,
+          lat: endLocationData.lat,
+          lng: endLocationData.lng,
+          kakaoPlaceId: endLocationData.kakao_place_id,
+        }
+      : null,
+    user: {
+      id: user.id,
+      nickname: user.nickname,
+    },
+    createdAt: new Date(data.created_at),
+  };
 }

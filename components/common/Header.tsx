@@ -7,22 +7,26 @@ type HeaderProps =
   | {
       variant: "main";
       onMyClick?: () => void;
+      className?: string;
     }
   | {
       variant: "back";
       title: string;
       onBack?: () => void;
+      className?: string;
     }
   | {
       variant: "back-close";
       title: string;
       onBack?: () => void;
       onClose?: () => void;
+      className?: string;
     }
   | {
       variant: "close";
       title: string;
       onClose?: () => void;
+      className?: string;
     };
 
 export function Header(props: HeaderProps) {
@@ -60,7 +64,7 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "main") {
     return (
-      <header className="relative flex items-center justify-center bg-white px-4 py-4">
+      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
         <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
           러너스 하이
         </h1>
@@ -77,7 +81,7 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "back") {
     return (
-      <header className="relative flex items-center justify-center bg-white px-4 py-4">
+      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
         <button
           type="button"
           onClick={handleBack}
@@ -95,7 +99,7 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "back-close") {
     return (
-      <header className="flex items-center justify-between bg-white px-4 py-4">
+      <header className={`flex items-center justify-between bg-white px-4 py-4 ${props.className || ""}`}>
         <button
           type="button"
           onClick={handleBack}
@@ -121,7 +125,7 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "close") {
     return (
-      <header className="relative flex items-center justify-center bg-white px-4 py-4">
+      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
         <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
           {props.title}
         </h1>
