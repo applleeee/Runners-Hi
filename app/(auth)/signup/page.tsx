@@ -23,19 +23,19 @@ export default function SignupPage() {
 
       {/* Main Content */}
       <main className="flex flex-1 flex-col">
-        <div className="flex flex-1 flex-col justify-center px-6">
+        <div className="flex flex-1 flex-col justify-center px-4">
           {/* Logo Section */}
-          <div className="mb-12 flex flex-col items-center justify-center space-y-2">
-            <p className="text-sm font-semibold text-(--sub-text)">
+          <div className="mb-10 flex flex-col items-center justify-center space-y-1">
+            <p className="text-xs font-semibold text-(--sub-text)">
               당신의 러닝의 일상으로
             </p>
-            <h2 className="text-2xl font-bold text-(--black)">
+            <h2 className="text-xl font-bold text-(--black)">
               Runner&apos;s Hi
             </h2>
           </div>
 
           {/* Form Inputs */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <Input
               id="email"
               type="email"
@@ -43,7 +43,7 @@ export default function SignupPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
+              className="h-12 border-none bg-white px-3 text-center text-sm placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
             <Input
@@ -53,18 +53,18 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="h-14 border-none bg-white px-4 text-center text-base placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
+              className="h-12 border-none bg-white px-3 text-center text-sm placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
             {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+              <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
                 {error}
               </div>
             )}
           </div>
 
           {/* Info Text */}
-          <div className="mt-8 space-y-1 text-center text-xs text-(--sub-text)">
+          <div className="mt-6 space-y-0.5 text-center text-xs text-(--sub-text)">
             <p>러너스하이에 회원가입하여</p>
             <p>당신의 러닝을 일상에 기록해 보세요.</p>
           </div>

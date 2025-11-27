@@ -78,17 +78,17 @@ export default function NewPostPage() {
       <main className="flex min-h-0 flex-1 flex-col">
         {/* GPX 파일 선택 전 화면 */}
         {!gpxData && (
-          <div className="flex flex-1 flex-col items-center justify-center px-6">
+          <div className="flex flex-1 flex-col items-center justify-center px-4">
             <button
               type="button"
               onClick={handleFileSelect}
               disabled={isLoading}
-              className="rounded-full bg-(--key-color) px-8 py-3 text-base font-semibold text-(--black) disabled:opacity-50"
+              className="rounded-full bg-(--key-color) px-6 py-2.5 text-sm font-semibold text-(--black) disabled:opacity-50"
             >
               {isLoading ? "파일 처리 중..." : "GPX 파일 선택"}
             </button>
 
-            <p className="mt-6 text-center text-sm text-(--sub-text)">
+            <p className="mt-4 text-center text-xs text-(--sub-text)">
               러닝 기록이 담긴 GPX 데이터를 선택하시면
               <br />
               러닝 데이터가 표시됩니다.

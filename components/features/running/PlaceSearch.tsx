@@ -221,7 +221,7 @@ export function PlaceSearch({ isOpen, onClose, onSelect }: PlaceSearchProps) {
       </div>
 
       {/* 검색 입력 */}
-      <div className="shrink-0 border-b p-4">
+      <div className="shrink-0 border-b px-3 py-3">
         <div className="flex gap-2">
           <input
             type="text"
@@ -229,20 +229,20 @@ export function PlaceSearch({ isOpen, onClose, onSelect }: PlaceSearchProps) {
             onChange={(e) => setKeyword(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="장소를 입력하세요"
-            className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-base focus:border-(--key-color) focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-(--key-color) focus:outline-none"
             autoFocus
           />
           <button
             type="button"
             onClick={handleSearch}
             disabled={!isLoaded || isSearching}
-            className="rounded-lg bg-(--key-color) px-6 py-3 font-semibold text-(--black) disabled:opacity-50"
+            className="shrink-0 rounded-lg bg-(--key-color) px-4 py-2.5 text-sm font-semibold text-(--black) disabled:opacity-50"
           >
             검색
           </button>
         </div>
         {!isLoaded && (
-          <p className="mt-2 text-sm text-(--sub-text)">
+          <p className="mt-2 text-xs text-(--sub-text)">
             카카오맵을 로드하는 중...
           </p>
         )}

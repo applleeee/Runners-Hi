@@ -121,7 +121,7 @@ export function ImageUploader({
       />
 
       {/* 이미지 안내 텍스트 */}
-      <p className="text-center text-sm font-medium text-(--black)">
+      <p className="text-center text-xs font-medium text-(--black)">
         러닝 기록에 이미지를 1장 이상 등록해주세요 (최대 {maxImages}장)
       </p>
 

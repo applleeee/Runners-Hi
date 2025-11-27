@@ -125,6 +125,13 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
+  /* 모바일 스크롤 방지 */
+  html, body {
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+  
   body {
     @apply bg-background text-foreground;
   }

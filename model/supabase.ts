@@ -209,18 +209,21 @@ export type Database = {
           created_at: string
           id: string
           nickname: string
+          profile_image_url: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           nickname: string
+          profile_image_url?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           nickname?: string
+          profile_image_url?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -58,20 +58,28 @@ export function Header(props: HeaderProps) {
     if (props.variant === "main" && props.onMyClick) {
       props.onMyClick();
     } else {
-      router.push("/profile");
+      router.push("/mypage");
     }
   };
 
   if (props.variant === "main") {
     return (
-      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
-        <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
+      <header
+        className={`relative flex items-center justify-center bg-white px-4 py-4 ${
+          props.className || ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => router.push("/")}
+          className="cursor-pointer whitespace-nowrap text-lg font-bold text-(--black)"
+        >
           러너스 하이
-        </h1>
+        </button>
         <button
           type="button"
           onClick={handleMyClick}
-          className="absolute right-4 shrink-0 whitespace-nowrap text-base font-medium text-(--black)"
+          className="cursor-pointer absolute right-4 shrink-0 whitespace-nowrap text-base font-medium text-(--black)"
         >
           MY
         </button>
@@ -81,11 +89,15 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "back") {
     return (
-      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
+      <header
+        className={`relative flex items-center justify-center bg-white px-4 py-4 ${
+          props.className || ""
+        }`}
+      >
         <button
           type="button"
           onClick={handleBack}
-          className="absolute left-4 shrink-0"
+          className="cursor-pointer absolute left-4 shrink-0"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="h-6 w-6 text-(--black)" />
@@ -99,11 +111,15 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "back-close") {
     return (
-      <header className={`flex items-center justify-between bg-white px-4 py-4 ${props.className || ""}`}>
+      <header
+        className={`flex items-center justify-between bg-white px-4 py-4 ${
+          props.className || ""
+        }`}
+      >
         <button
           type="button"
           onClick={handleBack}
-          className="mr-4 shrink-0"
+          className="cursor-pointer mr-4 shrink-0"
           aria-label="뒤로가기"
         >
           <ArrowLeft className="h-6 w-6 text-(--black)" />
@@ -114,7 +130,7 @@ export function Header(props: HeaderProps) {
         <button
           type="button"
           onClick={handleClose}
-          className="ml-4 shrink-0"
+          className="cursor-pointer ml-4 shrink-0"
           aria-label="닫기"
         >
           <X className="h-6 w-6 text-(--black)" />
@@ -125,14 +141,18 @@ export function Header(props: HeaderProps) {
 
   if (props.variant === "close") {
     return (
-      <header className={`relative flex items-center justify-center bg-white px-4 py-4 ${props.className || ""}`}>
+      <header
+        className={`relative flex items-center justify-center bg-white px-4 py-4 ${
+          props.className || ""
+        }`}
+      >
         <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
           {props.title}
         </h1>
         <button
           type="button"
           onClick={handleClose}
-          className="absolute right-4 shrink-0"
+          className="cursor-pointer absolute right-4 shrink-0"
           aria-label="닫기"
         >
           <X className="h-6 w-6 text-(--black)" />
