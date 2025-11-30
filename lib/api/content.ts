@@ -1,6 +1,7 @@
 import { PlaceResult } from "@/components/features/running/PlaceSearch";
 import { createClient } from "@/lib/supabase/client";
 import { GpxData } from "@/lib/utils/gpx-parser";
+import { QueryData } from "@supabase/supabase-js";
 
 export interface ContentType {
   id: number;
@@ -14,38 +15,6 @@ export interface Location {
   lat: number | null;
   lng: number | null;
   kakaoPlaceId: string | null;
-}
-
-// ============================================
-// Supabase 쿼리 결과 타입 정의
-// (관계 쿼리의 타입 추론 한계를 보완)
-// ============================================
-
-/** Location 테이블 원시 데이터 */
-interface LocationRow {
-  id: number;
-  name: string;
-  address: string | null;
-  lat: number | null;
-  lng: number | null;
-  kakao_place_id: string | null;
-}
-
-/** ContentLocation + Location 조인 결과 */
-interface ContentLocationWithLocation {
-  type: string;
-  Location: LocationRow | null;
-}
-
-/** ContentType 조인 결과 */
-interface ContentTypeRow {
-  name: string;
-}
-
-/** User 조인 결과 */
-interface UserRow {
-  id: string;
-  nickname: string;
 }
 
 export interface FeedContent {
@@ -243,9 +212,8 @@ export async function createContent(
 export async function getMainLocations(): Promise<Location[]> {
   const supabase = createClient();
 
-  // ContentLocation에서 type='main'인 location_id 목록 조회 후
-  // Location 테이블과 조인하여 가나다순 정렬
-  const { data, error } = await supabase
+  // 쿼리 객체 정의 (QueryData 타입 추출용)
+  const mainLocationsQuery = supabase
     .from("ContentLocation")
     .select(
       `
@@ -261,14 +229,18 @@ export async function getMainLocations(): Promise<Location[]> {
     )
     .eq("type", "main");
 
+  type MainLocationsResult = QueryData<typeof mainLocationsQuery>;
+
+  const { data, error } = await mainLocationsQuery;
+
   if (error) throw error;
 
   // 중복 제거 및 Location 형태로 변환
   const locationMap = new Map<number, Location>();
 
-  for (const item of data || []) {
-    // Supabase 관계 쿼리 결과 타입 단언
-    const loc = item.Location as LocationRow | null;
+  for (const item of (data as MainLocationsResult) || []) {
+    // Supabase 관계 쿼리는 배열로 추론하지만 many-to-one이므로 첫 번째 요소 사용
+    const loc = item.Location?.[0];
 
     if (loc && !locationMap.has(loc.id)) {
       locationMap.set(loc.id, {
@@ -297,6 +269,24 @@ export interface GetContentsParams {
   offset: number;
 }
 
+// 콘텐츠 목록 쿼리 select 문자열 (getContents, getUserContents 공통)
+const CONTENT_LIST_SELECT = `
+  id,
+  title,
+  total_distance,
+  pace,
+  image_urls,
+  ContentType (
+    name
+  ),
+  ContentLocation!inner (
+    type,
+    Location (
+      name
+    )
+  )
+` as const;
+
 /**
  * 콘텐츠 목록을 필터링하여 가져옵니다.
  * (무한 스크롤용)
@@ -309,28 +299,16 @@ export async function getContents(
   const { locationId, typeIds, distanceMin, distanceMax, limit, offset } =
     params;
 
-  // 기본 쿼리: Content + ContentType 조인
-  let query = supabase
+  // QueryData 타입 추출용 기본 쿼리
+  const baseQuery = supabase
     .from("Content")
-    .select(
-      `
-      id,
-      title,
-      total_distance,
-      pace,
-      image_urls,
-      ContentType (
-        name
-      ),
-      ContentLocation!inner (
-        type,
-        Location (
-          name
-        )
-      )
-    `
-    )
+    .select(CONTENT_LIST_SELECT)
     .eq("ContentLocation.type", "main");
+
+  type ContentListResult = QueryData<typeof baseQuery>;
+
+  // 동적 필터링 적용
+  let query = baseQuery;
 
   // locationId 필터
   if (locationId) {
@@ -360,11 +338,10 @@ export async function getContents(
   if (error) throw error;
 
   // FeedContent 형태로 변환
-  return (data || []).map((item) => {
-    // Supabase 관계 쿼리 결과 타입 단언
-    const contentType = item.ContentType as ContentTypeRow | null;
-    const contentLocations =
-      item.ContentLocation as ContentLocationWithLocation[];
+  return ((data as ContentListResult) || []).map((item) => {
+    // Supabase 관계 쿼리는 배열로 추론하지만 many-to-one이므로 첫 번째 요소 사용
+    const contentType = item.ContentType?.[0];
+    const contentLocations = item.ContentLocation;
 
     // main 타입의 location 찾기
     const mainLocation = contentLocations?.find((cl) => cl.type === "main");
@@ -376,7 +353,7 @@ export async function getContents(
       pace: item.pace ?? 0,
       imageUrl: item.image_urls?.[0] ?? undefined,
       typeName: contentType?.name ?? "",
-      locationName: mainLocation?.Location?.name ?? "",
+      locationName: mainLocation?.Location?.[0]?.name ?? "",
     };
   });
 }
@@ -453,29 +430,17 @@ export async function getUserContents(
     offset,
   } = params;
 
-  // 기본 쿼리: Content + ContentType 조인
-  let query = supabase
+  // QueryData 타입 추출용 기본 쿼리
+  const baseQuery = supabase
     .from("Content")
-    .select(
-      `
-      id,
-      title,
-      total_distance,
-      pace,
-      image_urls,
-      ContentType (
-        name
-      ),
-      ContentLocation!inner (
-        type,
-        Location (
-          name
-        )
-      )
-    `
-    )
+    .select(CONTENT_LIST_SELECT)
     .eq("user_id", userId)
     .eq("ContentLocation.type", "main");
+
+  type ContentListResult = QueryData<typeof baseQuery>;
+
+  // 동적 필터링 적용
+  let query = baseQuery;
 
   // locationId 필터
   if (locationId) {
@@ -505,11 +470,10 @@ export async function getUserContents(
   if (error) throw error;
 
   // FeedContent 형태로 변환
-  return (data || []).map((item) => {
-    // Supabase 관계 쿼리 결과 타입 단언
-    const contentType = item.ContentType as ContentTypeRow | null;
-    const contentLocations =
-      item.ContentLocation as ContentLocationWithLocation[];
+  return ((data as ContentListResult) || []).map((item) => {
+    // Supabase 관계 쿼리는 배열로 추론하지만 many-to-one이므로 첫 번째 요소 사용
+    const contentType = item.ContentType?.[0];
+    const contentLocations = item.ContentLocation;
 
     // main 타입의 location 찾기
     const mainLocation = contentLocations?.find((cl) => cl.type === "main");
@@ -521,7 +485,7 @@ export async function getUserContents(
       pace: item.pace ?? 0,
       imageUrl: item.image_urls?.[0] ?? undefined,
       typeName: contentType?.name ?? "",
-      locationName: mainLocation?.Location?.name ?? "",
+      locationName: mainLocation?.Location?.[0]?.name ?? "",
     };
   });
 }
@@ -532,7 +496,8 @@ export async function getUserContents(
 export async function getContentById(id: string): Promise<ContentDetail> {
   const supabase = createClient();
 
-  const { data, error } = await supabase
+  // 쿼리 객체 정의 (QueryData 타입 추출용)
+  const contentDetailQuery = supabase
     .from("Content")
     .select(
       `
@@ -569,42 +534,46 @@ export async function getContentById(id: string): Promise<ContentDetail> {
     .eq("id", id)
     .single();
 
+  type ContentDetailResult = QueryData<typeof contentDetailQuery>;
+
+  const { data, error } = await contentDetailQuery;
+
   if (error) throw error;
   if (!data) throw new Error("Content not found");
 
-  // Supabase 관계 쿼리 결과 타입 단언
-  const contentLocations = data.ContentLocation as Array<{
-    type: string;
-    Location: LocationRow | null;
-  }>;
+  const typedData = data as ContentDetailResult;
+  const contentLocations = typedData.ContentLocation;
 
-  const mainLocationData = contentLocations?.find(
-    (cl) => cl.type === "main"
-  )?.Location;
-  const startLocationData = contentLocations?.find(
-    (cl) => cl.type === "start"
-  )?.Location;
-  const endLocationData = contentLocations?.find(
-    (cl) => cl.type === "end"
-  )?.Location;
+  // Supabase 관계 쿼리는 배열로 추론하지만 many-to-one이므로 첫 번째 요소 사용
+  const mainLocationData = contentLocations?.find((cl) => cl.type === "main")
+    ?.Location?.[0];
+  const startLocationData = contentLocations?.find((cl) => cl.type === "start")
+    ?.Location?.[0];
+  const endLocationData = contentLocations?.find((cl) => cl.type === "end")
+    ?.Location?.[0];
 
   if (!mainLocationData) {
     throw new Error("Main location not found");
   }
 
-  const contentType = data.ContentType as ContentTypeRow;
-  const user = data.User as UserRow;
+  // ContentType, User도 many-to-one이므로 첫 번째 요소 사용
+  const contentType = typedData.ContentType?.[0];
+  const user = typedData.User?.[0];
+
+  if (!contentType || !user) {
+    throw new Error("Content type or user not found");
+  }
 
   return {
-    id: data.id,
-    title: data.title,
-    comment: data.comment,
-    gpxData: data.gpx_data as GpxData,
-    imageUrls: data.image_urls || [],
-    totalDistance: data.total_distance,
-    pace: data.pace,
-    startTime: data.start_time ? new Date(data.start_time) : null,
-    endTime: data.end_time ? new Date(data.end_time) : null,
+    id: typedData.id,
+    title: typedData.title,
+    comment: typedData.comment,
+    gpxData: typedData.gpx_data as GpxData,
+    imageUrls: typedData.image_urls || [],
+    totalDistance: typedData.total_distance,
+    pace: typedData.pace,
+    startTime: typedData.start_time ? new Date(typedData.start_time) : null,
+    endTime: typedData.end_time ? new Date(typedData.end_time) : null,
     typeName: contentType.name,
     mainLocation: {
       id: mainLocationData.id,
@@ -638,6 +607,6 @@ export async function getContentById(id: string): Promise<ContentDetail> {
       id: user.id,
       nickname: user.nickname,
     },
-    createdAt: new Date(data.created_at),
+    createdAt: new Date(typedData.created_at),
   };
 }
