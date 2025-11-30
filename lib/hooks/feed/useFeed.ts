@@ -8,7 +8,7 @@ import {
   getContents,
   getMainLocations,
 } from "@/lib/api/content";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 // 거리 필터 옵션 (하드코딩)
 export const DISTANCE_OPTIONS = [
@@ -140,10 +140,13 @@ export function useFeed(): UseFeedReturn {
     [filter, offset, getDistanceRange]
   );
 
+  // loadContents의 최신 참조 유지 (의존성 배열 문제 해결)
+  const loadContentsRef = useRef(loadContents);
+  loadContentsRef.current = loadContents;
+
   // 필터 변경 시 새로고침
   useEffect(() => {
-    loadContents(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadContentsRef.current(true);
   }, [filter.locationId, filter.typeIds, filter.distanceValue]);
 
   // 필터 설정 함수들

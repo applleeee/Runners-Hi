@@ -1,73 +1,54 @@
-"use client";
+import { PostDetailContent } from "@/components/features/post/PostDetailContent";
+import { createClient } from "@/lib/supabase/server";
+import { Metadata } from "next";
 
-import { use } from "react";
-import { Header } from "@/components/common/Header";
-import { KakaoMap } from "@/components/features/running/KakaoMap";
-import { PostBottomSheet } from "@/components/features/post/PostBottomSheet";
-import { usePostDetail } from "@/lib/hooks/post/usePostDetail";
+interface Props {
+  params: Promise<{ id: string }>;
+}
 
-export default function PostDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }> | { id: string };
-}) {
-  // Next.js 15+에서는 params가 Promise일 수 있음
-  const resolvedParams = params instanceof Promise ? use(params) : params;
-  const { content, isLoading, error } = usePostDetail(resolvedParams.id);
+/** Supabase User 조인 결과 타입 */
+interface UserNicknameRow {
+  nickname: string;
+}
 
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <div className="flex h-screen flex-col bg-(--bg)">
-        <Header variant="back" title="러닝 기록" />
-        <div className="flex flex-1 items-center justify-center">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-4 border-(--key-color) border-t-transparent" />
-            <p className="text-sm text-(--sub-text)">로딩 중...</p>
-          </div>
-        </div>
-      </div>
-    );
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+
+  try {
+    // 서버에서 Supabase 클라이언트 생성
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from("Content")
+      .select(
+        `
+        title,
+        User!inner (nickname)
+      `
+      )
+      .eq("id", id)
+      .single();
+
+    if (data) {
+      // Supabase 관계 쿼리 결과 타입 단언 (1:1 관계이지만 배열로 추론될 수 있음)
+      const user = data.User as unknown as UserNicknameRow;
+      return {
+        title: `${data.title} | Runner's Hi`,
+        description: `${user.nickname}님의 러닝 기록`,
+      };
+    }
+  } catch {
+    // 에러 시 기본 메타데이터 반환
   }
 
-  // 에러 상태
-  if (error || !content) {
-    return (
-      <div className="flex h-screen flex-col bg-(--bg)">
-        <Header variant="back" title="러닝 기록" />
-        <div className="flex flex-1 items-center justify-center px-6">
-          <div className="text-center">
-            <p className="mb-4 text-lg font-semibold text-(--black)">
-              컨텐츠를 불러올 수 없습니다
-            </p>
-            <p className="text-sm text-(--sub-text)">
-              {error?.message || "컨텐츠가 존재하지 않거나 삭제되었습니다."}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  return {
+    title: "러닝 기록 | Runner's Hi",
+    description: "러닝 기록을 공유하는 다이어리형 SNS",
+  };
+}
 
-  // 정상 상태
-  return (
-    <div className="relative h-screen overflow-hidden">
-      {/* 상단 헤더 - 반투명 배경 */}
-      <div className="absolute left-0 right-0 top-0 z-40">
-        <Header
-          variant="back"
-          title="러닝 기록"
-          className="bg-white/80 backdrop-blur-sm"
-        />
-      </div>
+export default async function PostDetailPage({ params }: Props) {
+  const { id } = await params;
 
-      {/* 지도 배경 */}
-      <div className="h-full w-full">
-        <KakaoMap points={content.gpxData.points} />
-      </div>
-
-      {/* Bottom Sheet */}
-      <PostBottomSheet content={content} />
-    </div>
-  );
+  return <PostDetailContent id={id} />;
 }

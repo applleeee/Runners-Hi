@@ -8,41 +8,37 @@ interface KakaoMapProps {
   className?: string;
 }
 
-// 카카오맵 SDK가 이미 로드되었는지 확인
-function isKakaoLoaded(): boolean {
+// 카카오맵 SDK가 완전히 로드되었는지 확인
+function isKakaoReady(): boolean {
   return (
     typeof window !== "undefined" &&
     window.kakao !== undefined &&
-    window.kakao.maps !== undefined
+    window.kakao.maps !== undefined &&
+    typeof window.kakao.maps.LatLng === "function"
   );
 }
 
 export function KakaoMap({ points, className }: KakaoMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const [isLoaded, setIsLoaded] = useState(isKakaoLoaded);
+  const [isLoaded, setIsLoaded] = useState(isKakaoReady);
 
+  // 카카오맵 SDK 로드 대기
   useEffect(() => {
-    // 이미 로드된 경우 스킵
     if (isLoaded) return;
 
-    const kakaoMapKey = process.env.NEXT_PUBLIC_KAKAO_MAP_KEY;
-
-    if (!kakaoMapKey) {
-      console.error("카카오맵 API 키가 설정되지 않았습니다.");
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&autoload=false&libraries=services`;
-    script.async = true;
-
-    script.onload = () => {
-      window.kakao.maps.load(() => {
-        setIsLoaded(true);
-      });
+    // SDK가 로드될 때까지 폴링
+    const checkKakaoLoaded = () => {
+      if (typeof window.kakao !== "undefined" && window.kakao.maps) {
+        window.kakao.maps.load(() => {
+          setIsLoaded(true);
+        });
+      } else {
+        // 아직 로드되지 않았으면 100ms 후 다시 확인
+        setTimeout(checkKakaoLoaded, 100);
+      }
     };
 
-    document.head.appendChild(script);
+    checkKakaoLoaded();
   }, [isLoaded]);
 
   useEffect(() => {

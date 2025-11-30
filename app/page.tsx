@@ -6,7 +6,7 @@ import { FeedCard } from "@/components/features/feed/FeedCard";
 import { FilterDropdown } from "@/components/features/feed/FilterDropdown";
 import { TypeFilter } from "@/components/features/feed/TypeFilter";
 import { DISTANCE_OPTIONS, useFeed } from "@/lib/hooks/feed/useFeed";
-import { useCallback, useEffect, useRef } from "react";
+import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 
 export default function Home() {
   const {
@@ -23,37 +23,11 @@ export default function Home() {
     loadMore,
   } = useFeed();
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
-
-  // 무한 스크롤 Observer 설정
-  const handleObserver = useCallback(
-    (entries: IntersectionObserverEntry[]) => {
-      const target = entries[0];
-      if (target.isIntersecting && hasMore && !isLoadingMore) {
-        loadMore();
-      }
-    },
-    [hasMore, isLoadingMore, loadMore]
-  );
-
-  useEffect(() => {
-    observerRef.current = new IntersectionObserver(handleObserver, {
-      root: null,
-      rootMargin: "100px",
-      threshold: 0,
-    });
-
-    if (loadMoreRef.current) {
-      observerRef.current.observe(loadMoreRef.current);
-    }
-
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
-    };
-  }, [handleObserver]);
+  const loadMoreRef = useInfiniteScroll({
+    hasMore,
+    isLoadingMore,
+    loadMore,
+  });
 
   // 위치 드롭다운 옵션 생성
   const locationOptions = [

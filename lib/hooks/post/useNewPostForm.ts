@@ -158,7 +158,6 @@ export function useNewPostForm() {
     if (!validateForm()) {
       return;
     }
-    console.log(gpxData, selectedTypeId, locations.main);
 
     if (!gpxData || !selectedTypeId || !locations.main) {
       alert("러닝 기록 등록에 실패했습니다. 다시 시도해주세요.");
@@ -168,7 +167,6 @@ export function useNewPostForm() {
     setIsSubmitting(true);
 
     try {
-      console.log("sdfsdfgsdgsdg");
       // 1. 현재 로그인한 사용자 확인
       const user = await getCurrentUser();
       if (!user) {
@@ -177,12 +175,10 @@ export function useNewPostForm() {
         return;
       }
 
-      // 2. 이미지 업로드
-      const uploadedImageUrls: string[] = [];
-      for (const file of imageFiles) {
-        const url = await uploadImage(file, user.id);
-        uploadedImageUrls.push(url);
-      }
+      // 2. 이미지 업로드 (병렬 처리)
+      const uploadedImageUrls = await Promise.all(
+        imageFiles.map((file) => uploadImage(file, user.id))
+      );
 
       // 3. 콘텐츠 생성
       await createContent({

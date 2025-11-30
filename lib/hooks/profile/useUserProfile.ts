@@ -1,18 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { getUserProfile, type UserProfile } from "@/lib/api/profile";
 import {
-  getUserStats,
-  getUserContents,
   getContentTypesByParentId,
   getMainLocations,
-  type UserStats,
-  type FeedContent,
+  getUserContents,
+  getUserStats,
   type ContentType,
+  type FeedContent,
   type Location,
+  type UserStats,
 } from "@/lib/api/content";
+import { getUserProfile, type UserProfile } from "@/lib/api/profile";
 import { DISTANCE_OPTIONS } from "@/lib/hooks/feed/useFeed";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UserProfileFilter {
   locationId: string | number | null;
@@ -79,12 +79,13 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const [userData, statsData, locationsData, typesData] = await Promise.all([
-          getUserProfile(userId),
-          getUserStats(userId),
-          getMainLocations(),
-          getContentTypesByParentId(1), // 러닝(1)의 하위 타입
-        ]);
+        const [userData, statsData, locationsData, typesData] =
+          await Promise.all([
+            getUserProfile(userId),
+            getUserStats(userId),
+            getMainLocations(),
+            getContentTypesByParentId(1), // 러닝(1)의 하위 타입
+          ]);
         setUser(userData);
         setStats(statsData);
         setLocations(locationsData);
@@ -145,10 +146,13 @@ export function useUserProfile(userId: string): UseUserProfileReturn {
     [userId, filter, offset, getDistanceRange]
   );
 
+  // loadContents의 최신 참조 유지 (의존성 배열 문제 해결)
+  const loadContentsRef = useRef(loadContents);
+  loadContentsRef.current = loadContents;
+
   // 필터 변경 시 새로고침
   useEffect(() => {
-    loadContents(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadContentsRef.current(true);
   }, [filter.locationId, filter.typeIds, filter.distanceValue]);
 
   // 필터 설정 함수들

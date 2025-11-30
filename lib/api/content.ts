@@ -16,6 +16,38 @@ export interface Location {
   kakaoPlaceId: string | null;
 }
 
+// ============================================
+// Supabase 쿼리 결과 타입 정의
+// (관계 쿼리의 타입 추론 한계를 보완)
+// ============================================
+
+/** Location 테이블 원시 데이터 */
+interface LocationRow {
+  id: number;
+  name: string;
+  address: string | null;
+  lat: number | null;
+  lng: number | null;
+  kakao_place_id: string | null;
+}
+
+/** ContentLocation + Location 조인 결과 */
+interface ContentLocationWithLocation {
+  type: string;
+  Location: LocationRow | null;
+}
+
+/** ContentType 조인 결과 */
+interface ContentTypeRow {
+  name: string;
+}
+
+/** User 조인 결과 */
+interface UserRow {
+  id: string;
+  nickname: string;
+}
+
 export interface FeedContent {
   id: string;
   title: string;
@@ -235,15 +267,8 @@ export async function getMainLocations(): Promise<Location[]> {
   const locationMap = new Map<number, Location>();
 
   for (const item of data || []) {
-    // Supabase 관계 쿼리 결과는 1:1 관계에서도 타입이 배열 또는 객체로 올 수 있음
-    const loc = item.Location as unknown as {
-      id: number;
-      name: string;
-      address: string | null;
-      lat: number | null;
-      lng: number | null;
-      kakao_place_id: string | null;
-    } | null;
+    // Supabase 관계 쿼리 결과 타입 단언
+    const loc = item.Location as LocationRow | null;
 
     if (loc && !locationMap.has(loc.id)) {
       locationMap.set(loc.id, {
@@ -336,11 +361,10 @@ export async function getContents(
 
   // FeedContent 형태로 변환
   return (data || []).map((item) => {
-    const contentType = item.ContentType as unknown as { name: string } | null;
-    const contentLocations = item.ContentLocation as unknown as Array<{
-      type: string;
-      Location: { name: string } | null;
-    }>;
+    // Supabase 관계 쿼리 결과 타입 단언
+    const contentType = item.ContentType as ContentTypeRow | null;
+    const contentLocations =
+      item.ContentLocation as ContentLocationWithLocation[];
 
     // main 타입의 location 찾기
     const mainLocation = contentLocations?.find((cl) => cl.type === "main");
@@ -419,7 +443,15 @@ export async function getUserContents(
 ): Promise<FeedContent[]> {
   const supabase = createClient();
 
-  const { userId, locationId, typeIds, distanceMin, distanceMax, limit, offset } = params;
+  const {
+    userId,
+    locationId,
+    typeIds,
+    distanceMin,
+    distanceMax,
+    limit,
+    offset,
+  } = params;
 
   // 기본 쿼리: Content + ContentType 조인
   let query = supabase
@@ -474,11 +506,10 @@ export async function getUserContents(
 
   // FeedContent 형태로 변환
   return (data || []).map((item) => {
-    const contentType = item.ContentType as unknown as { name: string } | null;
-    const contentLocations = item.ContentLocation as unknown as Array<{
-      type: string;
-      Location: { name: string } | null;
-    }>;
+    // Supabase 관계 쿼리 결과 타입 단언
+    const contentType = item.ContentType as ContentTypeRow | null;
+    const contentLocations =
+      item.ContentLocation as ContentLocationWithLocation[];
 
     // main 타입의 location 찾기
     const mainLocation = contentLocations?.find((cl) => cl.type === "main");
@@ -541,32 +572,28 @@ export async function getContentById(id: string): Promise<ContentDetail> {
   if (error) throw error;
   if (!data) throw new Error("Content not found");
 
-  // ContentLocation 배열을 타입별로 분류
-  const contentLocations = data.ContentLocation as unknown as Array<{
+  // Supabase 관계 쿼리 결과 타입 단언
+  const contentLocations = data.ContentLocation as Array<{
     type: string;
-    Location: {
-      id: number;
-      name: string;
-      address: string | null;
-      lat: number | null;
-      lng: number | null;
-      kakao_place_id: string | null;
-    } | null;
+    Location: LocationRow | null;
   }>;
 
-  const mainLocationData = contentLocations?.find((cl) => cl.type === "main")
-    ?.Location;
-  const startLocationData = contentLocations?.find((cl) => cl.type === "start")
-    ?.Location;
-  const endLocationData = contentLocations?.find((cl) => cl.type === "end")
-    ?.Location;
+  const mainLocationData = contentLocations?.find(
+    (cl) => cl.type === "main"
+  )?.Location;
+  const startLocationData = contentLocations?.find(
+    (cl) => cl.type === "start"
+  )?.Location;
+  const endLocationData = contentLocations?.find(
+    (cl) => cl.type === "end"
+  )?.Location;
 
   if (!mainLocationData) {
     throw new Error("Main location not found");
   }
 
-  const contentType = data.ContentType as unknown as { name: string };
-  const user = data.User as unknown as { id: string; nickname: string };
+  const contentType = data.ContentType as ContentTypeRow;
+  const user = data.User as UserRow;
 
   return {
     id: data.id,
