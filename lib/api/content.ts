@@ -357,6 +357,144 @@ export async function getContents(
   });
 }
 
+export interface UserStats {
+  totalDistance: number; // 총 거리 (km)
+  totalDuration: number; // 총 시간 (분)
+  totalCount: number; // 총 러닝 횟수
+}
+
+/**
+ * 특정 사용자의 누적 통계를 가져옵니다.
+ */
+export async function getUserStats(userId: string): Promise<UserStats> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("Content")
+    .select("total_distance, start_time, end_time")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+
+  // 클라이언트에서 집계
+  const totalDistance = data.reduce(
+    (sum, item) => sum + (item.total_distance ?? 0),
+    0
+  );
+
+  const totalDuration = data.reduce((sum, item) => {
+    if (item.start_time && item.end_time) {
+      const start = new Date(item.start_time).getTime();
+      const end = new Date(item.end_time).getTime();
+      const durationMinutes = (end - start) / (1000 * 60);
+      return sum + durationMinutes;
+    }
+    return sum;
+  }, 0);
+
+  const totalCount = data.length;
+
+  return {
+    totalDistance: Math.round(totalDistance * 100) / 100, // 소수점 2자리
+    totalDuration: Math.round(totalDuration), // 정수 (분)
+    totalCount,
+  };
+}
+
+export interface GetUserContentsParams {
+  userId: string;
+  locationId?: number | null;
+  typeIds?: number[];
+  distanceMin?: number | null;
+  distanceMax?: number | null;
+  limit: number;
+  offset: number;
+}
+
+/**
+ * 특정 사용자의 콘텐츠 목록을 필터링하여 가져옵니다.
+ */
+export async function getUserContents(
+  params: GetUserContentsParams
+): Promise<FeedContent[]> {
+  const supabase = createClient();
+
+  const { userId, locationId, typeIds, distanceMin, distanceMax, limit, offset } = params;
+
+  // 기본 쿼리: Content + ContentType 조인
+  let query = supabase
+    .from("Content")
+    .select(
+      `
+      id,
+      title,
+      total_distance,
+      pace,
+      image_urls,
+      ContentType (
+        name
+      ),
+      ContentLocation!inner (
+        type,
+        Location (
+          name
+        )
+      )
+    `
+    )
+    .eq("user_id", userId)
+    .eq("ContentLocation.type", "main");
+
+  // locationId 필터
+  if (locationId) {
+    query = query.eq("ContentLocation.location_id", locationId);
+  }
+
+  // typeIds 필터
+  if (typeIds && typeIds.length > 0) {
+    query = query.in("type_id", typeIds);
+  }
+
+  // 거리 필터
+  if (distanceMin !== null && distanceMin !== undefined) {
+    query = query.gte("total_distance", distanceMin);
+  }
+  if (distanceMax !== null && distanceMax !== undefined) {
+    query = query.lte("total_distance", distanceMax);
+  }
+
+  // 페이지네이션 및 정렬
+  query = query
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  // FeedContent 형태로 변환
+  return (data || []).map((item) => {
+    const contentType = item.ContentType as unknown as { name: string } | null;
+    const contentLocations = item.ContentLocation as unknown as Array<{
+      type: string;
+      Location: { name: string } | null;
+    }>;
+
+    // main 타입의 location 찾기
+    const mainLocation = contentLocations?.find((cl) => cl.type === "main");
+
+    return {
+      id: item.id,
+      title: item.title,
+      totalDistance: item.total_distance ?? 0,
+      pace: item.pace ?? 0,
+      imageUrl: item.image_urls?.[0] ?? undefined,
+      typeName: contentType?.name ?? "",
+      locationName: mainLocation?.Location?.name ?? "",
+    };
+  });
+}
+
 /**
  * ID로 특정 콘텐츠의 상세 정보를 가져옵니다.
  */

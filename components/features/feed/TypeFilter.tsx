@@ -28,7 +28,7 @@ export function TypeFilter({ types, selectedIds, onChange }: TypeFilterProps) {
             key={type.id}
             type="button"
             onClick={() => handleToggle(type.id)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-sm transition-colors ${
+            className={`shrink-0 whitespace-nowrap rounded-full px-1 py-1 text-xs transition-colors ${
               isSelected
                 ? "bg-(--black) text-white"
                 : "text-(--sub-text) hover:text-(--black)"

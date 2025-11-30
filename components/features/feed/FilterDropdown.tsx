@@ -1,6 +1,5 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface FilterOption {
@@ -57,7 +56,7 @@ export function FilterDropdown({
         className={
           isCompact
             ? "flex items-center gap-1 border-b border-(--black) pb-1 text-sm"
-            : "flex w-full items-center justify-between rounded-full border border-gray-300 bg-white px-4 py-2 text-sm"
+            : "flex w-full items-center justify-between rounded-full border border-gray-300 bg-white px-4 py-2 text-sm relative"
         }
       >
         <span
@@ -65,17 +64,19 @@ export function FilterDropdown({
             isCompact
               ? "text-(--black)"
               : value === null
-              ? "text-(--sub-text)"
-              : "text-(--black)"
+              ? "text-(--sub-text) absolute left-1/2 -translate-x-1/2"
+              : "text-(--black) absolute left-1/2 -translate-x-1/2"
           }
         >
           {displayLabel}
         </span>
-        <ChevronDown
-          className={`h-4 w-4 transition-transform ${
+        <span
+          className={`text-sm transition-transform shrink-0 ${
             isCompact ? "text-(--black)" : "text-(--sub-text)"
-          } ${isCompact ? "" : "ml-2"} ${isOpen ? "rotate-180" : ""}`}
-        />
+          } ${isCompact ? "" : "ml-auto"} ${isOpen ? "rotate-180" : ""}`}
+        >
+          ▼
+        </span>
       </button>
 
       {isOpen && (

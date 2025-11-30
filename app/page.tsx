@@ -76,7 +76,7 @@ export default function Home() {
       <div className="sticky top-0 z-30 bg-(--bg) px-4 pb-2 pt-3">
         {/* 위치 드롭다운 - 중앙 정렬 */}
         <div className="mb-3 flex justify-center">
-          <div className="w-[200px]">
+          <div className="w-full max-w-xs">
             <FilterDropdown
               label="러닝 위치"
               options={locationOptions}

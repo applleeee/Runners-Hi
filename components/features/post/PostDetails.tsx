@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { type ContentDetail } from "@/lib/api/content";
 
 interface PostDetailsProps {
@@ -17,7 +18,10 @@ export function PostDetails({ content }: PostDetailsProps) {
       )}
 
       {/* 작성자 정보 - 가운데 정렬, 세로 배치 */}
-      <div className="flex flex-col items-center gap-2 pt-4">
+      <Link
+        href={`/profile/${content.user.id}`}
+        className="flex flex-col items-center gap-2 pt-4 cursor-pointer hover:opacity-80 transition-opacity"
+      >
         <div className="h-14 w-14 rounded-full bg-(--sub-color) flex items-center justify-center">
           <span className="text-lg font-semibold text-(--black)">
             {content.user.nickname[0]}
@@ -26,7 +30,7 @@ export function PostDetails({ content }: PostDetailsProps) {
         <span className="text-sm font-semibold text-(--black)">
           {content.user.nickname}
         </span>
-      </div>
+      </Link>
     </div>
   );
 }
