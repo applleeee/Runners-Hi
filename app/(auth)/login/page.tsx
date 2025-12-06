@@ -3,6 +3,7 @@
 import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
 import { Input } from "@/components/ui/input";
+import { sendPasswordResetEmail } from "@/lib/api/auth";
 import { useLogin } from "@/lib/hooks/useLogin";
 import Link from "next/link";
 import { useState } from "react";
@@ -13,9 +14,31 @@ export default function LoginPage() {
 
   const { handleLogin, loading, error } = useLogin();
 
+  // 필수값 검증: 이메일과 비밀번호가 모두 입력되어야 활성화
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
     await handleLogin(email, password);
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email || !email.includes("@")) {
+      alert("유효한 이메일을 입력해주세요.");
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(email);
+      alert("비밀번호 재설정 이메일을 발송했습니다.\n메일함을 확인해주세요.");
+    } catch (err) {
+      if (err instanceof Error) {
+        alert(`이메일 발송에 실패했습니다.\n에러: ${err.message}`);
+      } else {
+        alert("이메일 발송에 실패했습니다.");
+      }
+    }
   };
 
   return (
@@ -58,19 +81,46 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
-                {error}
+              <div className="space-y-2">
+                {/* 에러 메시지 */}
+                <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
+                  이메일 또는 비밀번호가 올바르지 않습니다.
+                </div>
+
+                {/* 비밀번호 재설정 버튼 */}
+                <button
+                  type="button"
+                  onClick={handlePasswordReset}
+                  className="w-full rounded-xl border border-(--key-color) bg-white px-4 py-2.5 text-sm text-(--key-color)"
+                >
+                  비밀번호를 잊으셨나요?
+                </button>
+
+                {/* 회원가입 유도 */}
+                <div className="text-center">
+                  <span className="text-xs text-(--sub-text)">
+                    계정이 없으신가요?{" "}
+                  </span>
+                  <Link
+                    href="/signup"
+                    className="text-xs font-medium text-(--key-color) underline"
+                  >
+                    회원가입하기
+                  </Link>
+                </div>
               </div>
             )}
 
-            <div className="pt-2 text-center">
-              <Link
-                href="/signup"
-                className="text-xs text-(--sub-text) underline"
-              >
-                러너스 하이 회원가입 &gt;
-              </Link>
-            </div>
+            {!error && (
+              <div className="pt-2 text-center">
+                <Link
+                  href="/signup"
+                  className="text-xs text-(--sub-text) underline"
+                >
+                  러너스 하이 회원가입 &gt;
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Password Reset Info */}
@@ -86,7 +136,11 @@ export default function LoginPage() {
 
         {/* Submit Button - Fixed at Bottom */}
         <form onSubmit={onSubmit}>
-          <BottomButton type="submit" disabled={loading} variant="unselect">
+          <BottomButton
+            type="submit"
+            disabled={loading || !isFormValid}
+            variant={isFormValid ? "primary" : "unselect"}
+          >
             {loading ? "처리중..." : "로그인"}
           </BottomButton>
         </form>

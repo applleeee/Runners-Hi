@@ -12,8 +12,12 @@ export default function SignupPage() {
 
   const { handleSignup, loading, error } = useSignup();
 
+  // 필수값 검증: 이메일과 비밀번호가 모두 입력되어야 활성화
+  const isFormValid = email.trim() !== "" && password.trim() !== "";
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
     await handleSignup(email, password);
   };
 
@@ -72,7 +76,11 @@ export default function SignupPage() {
 
         {/* Submit Button - Fixed at Bottom */}
         <form onSubmit={onSubmit}>
-          <BottomButton type="submit" disabled={loading} variant="unselect">
+          <BottomButton
+            type="submit"
+            disabled={loading || !isFormValid}
+            variant={isFormValid ? "primary" : "unselect"}
+          >
             {loading ? "처리중..." : "회원가입"}
           </BottomButton>
         </form>

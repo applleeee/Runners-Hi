@@ -3,6 +3,7 @@
 import { signIn } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { z } from "zod";
 
 export function useLogin() {
   const [loading, setLoading] = useState(false);
@@ -14,9 +15,11 @@ export function useLogin() {
     setError(null);
 
     try {
-      // 이메일 검증
-      if (!email) {
-        throw new Error("이메일을 입력해주세요.");
+      // 이메일 형식 검증
+      const emailSchema = z.email({ message: "이메일 형식이 맞지 않습니다." });
+      const emailResult = emailSchema.safeParse(email);
+      if (!emailResult.success) {
+        throw new Error(emailResult.error.issues[0].message);
       }
 
       // 비밀번호 검증
