@@ -54,9 +54,7 @@ export async function getCurrentUser() {
 export async function sendPasswordResetEmail(email: string) {
   const supabase = createClient();
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/resetPassword`,
-  });
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
 
   if (error) throw error;
 }

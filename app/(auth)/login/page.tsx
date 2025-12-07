@@ -28,9 +28,7 @@ export default function LoginPage() {
   const handlePasswordReset = async () => {
     try {
       // Zod를 사용한 이메일 검증
-      const emailSchema = z
-        .string()
-        .email({ message: "이메일 형식이 맞지 않습니다." });
+      const emailSchema = z.email({ message: "이메일 형식이 맞지 않습니다." });
       const emailResult = emailSchema.safeParse(email);
 
       if (!emailResult.success) {

@@ -4,17 +4,19 @@ import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { useVerifyRecoveryToken } from "@/lib/hooks/useVerifyRecoveryToken";
 import { AuthApiError } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const supabase = createClient();
+  const { isVerified, isVerifying, error: verifyError } = useVerifyRecoveryToken();
 
   const isFormValid = newPassword.length >= 6;
 
@@ -49,6 +51,30 @@ export default function ResetPasswordPage() {
       setLoading(false);
     }
   };
+
+  // 검증 중일 때 로딩 표시
+  if (isVerifying) {
+    return (
+      <div className="flex min-h-screen flex-col bg-(--bg)">
+        <Header variant="back" title="비밀번호 재설정" />
+        <main className="flex flex-1 items-center justify-center">
+          <p className="text-sm text-(--sub-text)">확인 중...</p>
+        </main>
+      </div>
+    );
+  }
+
+  // 검증 실패 시 에러 표시
+  if (verifyError || !isVerified) {
+    return (
+      <div className="flex min-h-screen flex-col bg-(--bg)">
+        <Header variant="back" title="비밀번호 재설정" />
+        <main className="flex flex-1 flex-col items-center justify-center px-4">
+          <p className="text-sm text-red-600">{verifyError}</p>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-(--bg)">
@@ -96,5 +122,13 @@ export default function ResetPasswordPage() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">로딩 중...</div>}>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
