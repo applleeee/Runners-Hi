@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // 명확하게 공개되어야 하는 경로들
 const publicPaths = {
   // 정확히 일치해야 하는 경로
-  exact: ["/login", "/signup", "/", "/reset-password"],
+  exact: ["/login", "/signup", "/", "/resetPassword"],
   // 패턴 매칭이 필요한 경로 (동적 라우트)
   patterns: [
     /^\/posts\/[^/]+$/, // /posts/123 형태만 (컨텐츠 상세)

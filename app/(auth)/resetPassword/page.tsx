@@ -4,6 +4,7 @@ import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
 import { Input } from "@/components/ui/input";
 import { createClient } from "@/lib/supabase/client";
+import { AuthApiError } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -33,9 +34,14 @@ export default function ResetPasswordPage() {
 
       alert("비밀번호가 변경되었습니다.");
       router.push("/");
-    } catch (err: unknown) {
+    } catch (err) {
       if (err instanceof Error) {
-        setError(err.message);
+        const authError = err as AuthApiError;
+        if (authError.code === "same_password") {
+          setError("이전 비밀번호와 다른 비밀번호를 입력해주세요.");
+        } else {
+          setError("비밀번호 변경에 실패했습니다.");
+        }
       } else {
         setError("비밀번호 변경에 실패했습니다.");
       }

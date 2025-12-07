@@ -2,11 +2,13 @@
 
 import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
+import { PrimaryButton } from "@/components/common/PrimaryButton";
 import { Input } from "@/components/ui/input";
 import { sendPasswordResetEmail } from "@/lib/api/auth";
 import { useLogin } from "@/lib/hooks/useLogin";
 import Link from "next/link";
 import { useState } from "react";
+import { z } from "zod";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,20 +26,22 @@ export default function LoginPage() {
   };
 
   const handlePasswordReset = async () => {
-    if (!email || !email.includes("@")) {
-      alert("유효한 이메일을 입력해주세요.");
-      return;
-    }
-
     try {
+      // Zod를 사용한 이메일 검증
+      const emailSchema = z
+        .string()
+        .email({ message: "이메일 형식이 맞지 않습니다." });
+      const emailResult = emailSchema.safeParse(email);
+
+      if (!emailResult.success) {
+        alert(emailResult.error.issues[0].message);
+        return;
+      }
+
       await sendPasswordResetEmail(email);
       alert("비밀번호 재설정 이메일을 발송했습니다.\n메일함을 확인해주세요.");
     } catch (err) {
-      if (err instanceof Error) {
-        alert(`이메일 발송에 실패했습니다.\n에러: ${err.message}`);
-      } else {
-        alert("이메일 발송에 실패했습니다.");
-      }
+      alert("메일 발송에 실패했습니다. 다시 시도해 주세요.");
     }
   };
 
@@ -80,54 +84,35 @@ export default function LoginPage() {
               className="h-12 border-none bg-white px-3 text-center text-sm placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
+            {/* 에러 메시지 */}
             {error && (
-              <div className="space-y-2">
-                {/* 에러 메시지 */}
-                <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
-                  이메일 또는 비밀번호가 올바르지 않습니다.
-                </div>
-
-                {/* 비밀번호 재설정 버튼 */}
-                <button
-                  type="button"
-                  onClick={handlePasswordReset}
-                  className="w-full rounded-xl border border-(--key-color) bg-white px-4 py-2.5 text-sm text-(--key-color)"
-                >
-                  비밀번호를 잊으셨나요?
-                </button>
-
-                {/* 회원가입 유도 */}
-                <div className="text-center">
-                  <span className="text-xs text-(--sub-text)">
-                    계정이 없으신가요?{" "}
-                  </span>
-                  <Link
-                    href="/signup"
-                    className="text-xs font-medium text-(--key-color) underline"
-                  >
-                    회원가입하기
-                  </Link>
-                </div>
+              <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
+                이메일 또는 비밀번호가 올바르지 않습니다.
               </div>
             )}
 
-            {!error && (
-              <div className="pt-2 text-center">
-                <Link
-                  href="/signup"
-                  className="text-xs text-(--sub-text) underline"
-                >
-                  러너스 하이 회원가입 &gt;
-                </Link>
-              </div>
-            )}
+            {/* 비밀번호 재설정 링크 */}
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handlePasswordReset}
+                className="mt-4 text-xs text-(--sub-text) underline cursor-pointer"
+              >
+                비밀번호 재설정 &gt;
+              </button>
+            </div>
+          </div>
+
+          {/* 회원가입 버튼 */}
+          <div className="mt-8 flex justify-center">
+            <Link href="/signup">
+              <PrimaryButton>러너스 하이 회원가입 &gt;</PrimaryButton>
+            </Link>
           </div>
 
           {/* Password Reset Info */}
-          <div className="mt-6 space-y-0.5 text-center text-xs text-(--sub-text)">
-            <p>비밀번호를 잊으셨다면</p>
-            <p>본인 이메일 계정을 사용하여</p>
-            <p>메일을 보내주세요.</p>
+          <div className="mt-16 space-y-0.5 text-center text-xs text-(--sub-text)">
+            <p>로그인에 문제가 있다면</p>
             <p className="pt-2 font-medium text-(--black)">
               runnershiho21@gmail.com
             </p>
