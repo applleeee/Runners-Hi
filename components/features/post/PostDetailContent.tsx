@@ -48,7 +48,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
 
   // 정상 상태
   return (
-    <div className="relative flex-1 overflow-hidden">
+    <div className="relative h-dvh overflow-hidden">
       {/* 상단 헤더 - 반투명 배경 */}
       <div className="absolute left-0 right-0 top-0 z-40">
         <Header

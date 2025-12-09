@@ -59,7 +59,7 @@ export default function NewPostPage() {
   };
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden bg-(--bg)">
+    <div className="flex h-dvh flex-col overflow-hidden bg-(--bg)">
       <Header
         variant="close"
         title="러닝 기록 등록하기"
