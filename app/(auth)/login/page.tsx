@@ -89,31 +89,35 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* 비밀번호 재설정 링크 */}
-            <div className="text-center">
+            {/* 비밀번호 재설정 영역 - 회색 박스 */}
+            <div className="mt-4 mx-2 rounded-lg bg-[#E9E9E9] py-2 text-center">
               <button
                 type="button"
                 onClick={handlePasswordReset}
-                className="mt-4 text-xs text-(--sub-text) underline cursor-pointer"
+                className="text-xs text-(--black) underline cursor-pointer"
               >
-                비밀번호 재설정 &gt;
+                비밀번호 재설정 메일 발송 &gt;
               </button>
+              <p className="mt-2 text-[12px] text-(--sub-text)">
+                입력한 이메일로 비밀번호 재설정 메일이 발송됩니다.
+              </p>
+              <p className="text-[12px] text-(--sub-text)">
+                (가입된 이메일 아이디가 아니라면 발송되지 않습니다.)
+              </p>
             </div>
           </div>
 
+          {/* Password Reset Info */}
+          <div className="mt-8 space-y-0.5 text-center text-xs font-bold">
+            <p>로그인에 문제가 있다면</p>
+            <p className="pt-2 font-bold">runnershiho21@gmail.com</p>
+          </div>
+
           {/* 회원가입 버튼 */}
-          <div className="mt-8 flex justify-center">
+          <div className="mt-16 flex justify-center">
             <Link href="/signup">
               <PrimaryButton>러너스 하이 회원가입 &gt;</PrimaryButton>
             </Link>
-          </div>
-
-          {/* Password Reset Info */}
-          <div className="mt-16 space-y-0.5 text-center text-xs text-(--sub-text)">
-            <p>로그인에 문제가 있다면</p>
-            <p className="pt-2 font-medium text-(--black)">
-              runnershiho21@gmail.com
-            </p>
           </div>
         </div>
 
