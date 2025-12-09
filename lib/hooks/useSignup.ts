@@ -1,6 +1,7 @@
 "use client";
 
 import { signUp } from "@/lib/api/auth";
+import { AuthError } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { z } from "zod";
@@ -16,7 +17,7 @@ export function useSignup() {
 
     try {
       // 이메일 검증
-      const emailSchema = z.string().email({ message: "이메일 형식이 맞지 않습니다." });
+      const emailSchema = z.email({ message: "이메일 형식이 맞지 않습니다." });
       const emailResult = emailSchema.safeParse(email);
       if (!emailResult.success) {
         alert(emailResult.error.issues[0].message);
@@ -41,11 +42,12 @@ export function useSignup() {
       alert("회원가입이 완료되었습니다.");
       router.push("/");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("알 수 없는 오류가 발생했습니다.");
+      if ((err as AuthError)?.code?.includes("user_already_exists")) {
+        alert("이미 가입된 이메일 계정입니다.");
+        return;
       }
+
+      setError("알 수 없는 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }

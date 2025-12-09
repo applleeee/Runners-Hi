@@ -6,16 +6,15 @@ import { createClient } from "@/lib/supabase/client";
  * @param userId 사용자 ID
  * @returns 업로드된 이미지의 public URL
  */
-export async function uploadImage(
-  file: File,
-  userId: string
-): Promise<string> {
+export async function uploadImage(file: File, userId: string): Promise<string> {
   const supabase = createClient();
 
   // 파일 확장자 추출
   const fileExt = file.name.split(".").pop();
   // 고유한 파일명 생성 (타임스탬프 + 랜덤 문자열)
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+  const fileName = `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(7)}.${fileExt}`;
   // 사용자별 폴더 구조: userId/fileName
   const filePath = `${userId}/${fileName}`;
 
@@ -83,4 +82,3 @@ export function validateImageFile(file: File): {
 
   return { valid: true };
 }
-
