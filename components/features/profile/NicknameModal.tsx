@@ -26,24 +26,27 @@ export function NicknameModal({
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!nickname.trim()) {
+    // 앞뒤 공백 제거
+    const trimmedNickname = nickname.trim();
+
+    if (!trimmedNickname) {
       alert("닉네임을 입력해주세요.");
       return;
     }
 
-    if (nickname === currentNickname) {
+    if (trimmedNickname === currentNickname) {
       alert("현재 닉네임과 동일합니다.");
       return;
     }
 
-    if (nickname.length < 2 || nickname.length > 20) {
+    if (trimmedNickname.length < 2 || trimmedNickname.length > 20) {
       alert("닉네임은 2~20자 이내로 입력해주세요.");
       return;
     }
 
     setLoading(true);
     try {
-      await onSubmit(nickname);
+      await onSubmit(trimmedNickname);
       onClose();
     } catch (error) {
       console.error("닉네임 변경 실패:", error);
