@@ -57,7 +57,7 @@ export default function NewPostDetailPage() {
 
   if (!gpxData) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <p className="text-(--sub-text)">로딩 중...</p>
       </div>
     );
@@ -67,7 +67,7 @@ export default function NewPostDetailPage() {
     "h-12 border-none bg-white px-3 text-center text-sm font-normal placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl";
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-(--bg)">
+    <div className="flex flex-1 flex-col overflow-hidden bg-(--bg)">
       <Header
         variant="close"
         title="러닝 기록 등록하기"

@@ -15,7 +15,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
   // 로딩 상태
   if (isLoading) {
     return (
-      <div className="flex h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="러닝 기록" />
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
@@ -30,7 +30,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
   // 에러 상태
   if (error || !content) {
     return (
-      <div className="flex h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="러닝 기록" />
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="text-center">
@@ -48,7 +48,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
 
   // 정상 상태
   return (
-    <div className="relative h-screen overflow-hidden">
+    <div className="relative flex-1 overflow-hidden">
       {/* 상단 헤더 - 반투명 배경 */}
       <div className="absolute left-0 right-0 top-0 z-40">
         <Header
