@@ -55,7 +55,7 @@ function ResetPasswordContent() {
   // 검증 중일 때 로딩 표시
   if (isVerifying) {
     return (
-      <div className="flex min-h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="비밀번호 재설정" />
         <main className="flex flex-1 items-center justify-center">
           <p className="text-sm text-(--sub-text)">확인 중...</p>
@@ -67,7 +67,7 @@ function ResetPasswordContent() {
   // 검증 실패 시 에러 표시
   if (verifyError || !isVerified) {
     return (
-      <div className="flex min-h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="비밀번호 재설정" />
         <main className="flex flex-1 flex-col items-center justify-center px-4">
           <p className="text-sm text-red-600">{verifyError}</p>
@@ -77,7 +77,7 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-(--bg)">
+    <div className="flex flex-1 flex-col bg-(--bg)">
       <Header variant="back" title="비밀번호 재설정" />
 
       <main className="flex flex-1 flex-col">
@@ -127,7 +127,7 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">로딩 중...</div>}>
+    <Suspense fallback={<div className="flex flex-1 items-center justify-center">로딩 중...</div>}>
       <ResetPasswordContent />
     </Suspense>
   );

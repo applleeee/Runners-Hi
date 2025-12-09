@@ -68,7 +68,7 @@ export default function MyPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <p className="text-(--sub-text)">로딩 중...</p>
       </div>
     );
@@ -76,14 +76,14 @@ export default function MyPage() {
 
   if (!profile) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-1 items-center justify-center">
         <p className="text-(--sub-text)">프로필을 불러올 수 없습니다.</p>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-(--bg)">
+    <div className="flex flex-1 flex-col bg-(--bg)">
       <Header variant="main" />
 
       <main className="flex flex-1 flex-col">

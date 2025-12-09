@@ -15,7 +15,7 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-(--bg) px-4">
+    <div className="flex flex-1 flex-col items-center justify-center bg-(--bg) px-4">
       <div className="text-center">
         <h2 className="mb-4 text-lg font-bold text-(--black)">
           문제가 발생했습니다

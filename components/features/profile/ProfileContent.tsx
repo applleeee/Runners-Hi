@@ -55,7 +55,7 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   // 로딩 상태
   if (isLoading && !user) {
     return (
-      <div className="flex h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="프로필" />
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
@@ -70,7 +70,7 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   // 에러 상태 (사용자 없음)
   if (!user) {
     return (
-      <div className="flex h-screen flex-col bg-(--bg)">
+      <div className="flex flex-1 flex-col bg-(--bg)">
         <Header variant="back" title="프로필" />
         <div className="flex flex-1 items-center justify-center px-6">
           <div className="text-center">
@@ -87,7 +87,7 @@ export function ProfileContent({ userId }: ProfileContentProps) {
   }
 
   return (
-    <div className="min-h-screen bg-(--bg)">
+    <div className="flex flex-1 flex-col bg-(--bg)">
       {/* 헤더 */}
       <Header variant="back" title={user.nickname} />
 

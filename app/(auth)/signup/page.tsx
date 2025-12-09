@@ -22,7 +22,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-(--bg)">
+    <div className="flex flex-1 flex-col bg-(--bg)">
       <Header variant="back" title="회원가입" />
 
       {/* Main Content */}
