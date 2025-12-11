@@ -8,12 +8,10 @@ import { z } from "zod";
 
 export function useSignup() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const handleSignup = async (email: string, password: string) => {
     setLoading(true);
-    setError(null);
 
     try {
       // 이메일 검증
@@ -47,11 +45,11 @@ export function useSignup() {
         return;
       }
 
-      setError("알 수 없는 오류가 발생했습니다.");
+      alert("알 수 없는 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
-  return { handleSignup, loading, error };
+  return { handleSignup, loading };
 }

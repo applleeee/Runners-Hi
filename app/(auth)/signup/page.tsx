@@ -10,7 +10,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const { handleSignup, loading, error } = useSignup();
+  const { handleSignup, loading } = useSignup();
 
   // 필수값 검증: 이메일과 비밀번호가 모두 입력되어야 활성화
   const isFormValid = email.trim() !== "" && password.trim() !== "";
@@ -60,12 +60,7 @@ export default function SignupPage() {
               className="h-12 border-none bg-white px-3 text-center text-sm placeholder:text-(--sub-text) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25)] rounded-xl"
             />
 
-            {error && (
-              <div className="rounded-md bg-red-50 p-2.5 text-xs text-red-800">
-                {error}
-              </div>
-            )}
-          </div>
+            </div>
 
           {/* Info Text */}
           <div className="mt-6 space-y-0.5 text-center text-xs text-(--sub-text)">
