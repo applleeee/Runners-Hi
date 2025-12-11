@@ -1,14 +1,14 @@
 "use client";
 
-import { Camera, X } from "lucide-react";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from "@/components/ui/carousel";
+import { Camera, X } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 interface ImageUploaderProps {
   images: string[];
@@ -132,6 +132,10 @@ export function ImageUploader({
     api?.scrollTo(index);
   };
 
+  // 추가 카드 표시 여부 및 총 아이템 개수 계산
+  const showAddCard = images.length < maxImages;
+  const totalItems = images.length + (showAddCard ? 1 : 0);
+
   return (
     <div className="space-y-3">
       {/* Hidden file input */}
@@ -149,72 +153,62 @@ export function ImageUploader({
         러닝 기록에 이미지를 1장 이상 등록해주세요 (최대 {maxImages}장)
       </p>
 
-      {/* 이미지 프리뷰 영역 */}
-      {images.length === 0 ? (
-        // 이미지가 없을 때
-        <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
-          <button
-            type="button"
-            onClick={handleFileSelect}
-            className="flex h-full w-full flex-col items-center justify-center gap-3 text-(--sub-text) transition-colors hover:text-(--black)"
-          >
-            <Camera className="h-12 w-12" />
-            <span className="text-sm">이미지 추가하기</span>
-          </button>
-        </div>
-      ) : (
-        // 이미지가 1장 이상일 때 - 캐러셀
-        <div className="relative">
-          <Carousel
-            opts={{
-              align: "center",
-              loop: images.length > 1,
-            }}
-            setApi={setApi}
-            className="w-full"
-          >
-            <CarouselContent>
-              {images.map((image, index) => (
-                <CarouselItem key={index} className="basis-[85%]">
-                  <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
-                    <Image
-                      src={image}
-                      alt={`업로드 이미지 ${index + 1}`}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                    {/* 삭제 버튼 */}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/70"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+      {/* 이미지 프리뷰 영역 - 항상 캐러셀 사용 */}
+      <Carousel
+        opts={{
+          align: "center",
+          loop: totalItems > 1,
+        }}
+        setApi={setApi}
+        className="w-full"
+      >
+        <CarouselContent
+          className={totalItems === 1 ? "ml-0 justify-center" : ""}
+        >
+          {/* 업로드된 이미지들 */}
+          {images.map((image, index) => (
+            <CarouselItem key={index} className="basis-[85%]">
+              <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
+                <Image
+                  src={image}
+                  alt={`업로드 이미지 ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                {/* 삭제 버튼 */}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveImage(index)}
+                  className="absolute right-2 top-2 rounded-full bg-black/50 p-1.5 text-white transition-colors hover:bg-black/70"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </CarouselItem>
+          ))}
 
-          {/* 이미지 추가 버튼 (최대 개수 미만일 때만 표시) */}
-          {images.length < maxImages && (
-            <button
-              type="button"
-              onClick={handleFileSelect}
-              className="absolute bottom-3 right-[calc(7.5%+12px)] z-10 rounded-full bg-white p-2 shadow-lg transition-colors hover:bg-gray-50"
-            >
-              <Camera className="h-5 w-5 text-(--black)" />
-            </button>
+          {/* 이미지 추가 카드 (최대 개수 미만일 때만 표시) */}
+          {showAddCard && (
+            <CarouselItem className="basis-[85%]">
+              <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
+                <button
+                  type="button"
+                  onClick={handleFileSelect}
+                  className="flex h-full w-full flex-col items-center justify-center gap-3 text-(--sub-text) transition-colors hover:text-(--black)"
+                >
+                  <Camera className="h-12 w-12" />
+                </button>
+              </div>
+            </CarouselItem>
           )}
-        </div>
-      )}
+        </CarouselContent>
+      </Carousel>
 
-      {/* Dot 인디케이터 */}
-      {images.length > 1 && (
+      {/* Dot 인디케이터 - 총 아이템 2개 이상일 때만 표시 */}
+      {totalItems > 1 && (
         <div className="flex justify-center gap-1.5">
-          {images.map((_, index) => (
+          {Array.from({ length: totalItems }).map((_, index) => (
             <button
               key={index}
               type="button"
