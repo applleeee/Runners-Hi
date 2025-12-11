@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/common/Header";
 import { ProfileImage } from "@/components/common/ProfileImage";
+import { UnderlineButton } from "@/components/common/UnderlineButton";
 import { NicknameModal } from "@/components/features/profile/NicknameModal";
 import { ProfileImagePresetModal } from "@/components/features/profile/ProfileImagePresetModal";
 import { ProfileImageSelectionModal } from "@/components/features/profile/ProfileImageSelectionModal";
@@ -9,6 +10,7 @@ import { ProfileImageUploadModal } from "@/components/features/profile/ProfileIm
 import { Button } from "@/components/ui/button";
 import type { UserProfile } from "@/lib/api/profile";
 import { getCurrentUserProfile } from "@/lib/api/profile";
+import { useLogout } from "@/lib/hooks/useLogout";
 import { useNicknameChange } from "@/lib/hooks/useNicknameChange";
 import { useProfileImage } from "@/lib/hooks/useProfileImage";
 import { createClient } from "@/lib/supabase/client";
@@ -27,6 +29,7 @@ export default function MyPage() {
   >("closed");
   const { changeNickname } = useNicknameChange();
   const { changeProfileImage } = useProfileImage();
+  const { handleLogout, loading: logoutLoading } = useLogout();
 
   useEffect(() => {
     loadProfile();
@@ -144,11 +147,21 @@ export default function MyPage() {
             {/* 문의 안내 */}
             <div className="text-center">
               <p className="mb-1 text-xs text-(--sub-text)">
-                문의는 아래로 해주세요.
+                문의는 이쪽으로 해주세요.
               </p>
               <p className="text-xs font-medium text-(--black)">
                 {process.env.NEXT_PUBLIC_CONTACT_EMAIL}
               </p>
+            </div>
+
+            {/* 로그아웃 버튼 */}
+            <div className="text-center">
+              <UnderlineButton
+                onClick={handleLogout}
+                disabled={logoutLoading}
+              >
+                로그아웃
+              </UnderlineButton>
             </div>
           </div>
         </div>

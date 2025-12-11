@@ -3,6 +3,7 @@
 import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
 import { PrimaryButton } from "@/components/common/PrimaryButton";
+import { UnderlineButton } from "@/components/common/UnderlineButton";
 import { Input } from "@/components/ui/input";
 import { sendPasswordResetEmail } from "@/lib/api/auth";
 import { useLogin } from "@/lib/hooks/useLogin";
@@ -89,13 +90,9 @@ export default function LoginPage() {
 
             {/* 비밀번호 재설정 영역 - 회색 박스 */}
             <div className="mt-4 mx-2 rounded-lg bg-[#E9E9E9] py-2 text-center">
-              <button
-                type="button"
-                onClick={handlePasswordReset}
-                className="text-xs text-(--black) underline cursor-pointer"
-              >
+              <UnderlineButton onClick={handlePasswordReset}>
                 비밀번호 재설정 메일 발송 &gt;
-              </button>
+              </UnderlineButton>
               <p className="mt-2 text-[12px] text-(--sub-text)">
                 입력한 이메일로 비밀번호 재설정 메일이 발송됩니다.
               </p>
