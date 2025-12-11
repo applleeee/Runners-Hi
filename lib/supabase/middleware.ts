@@ -7,7 +7,7 @@ const publicPaths = {
   exact: ["/login", "/signup", "/", "/resetPassword"],
   // 패턴 매칭이 필요한 경로 (동적 라우트)
   patterns: [
-    /^\/posts\/[^/]+$/, // /posts/123 형태만 (컨텐츠 상세)
+    /^\/posts\/(?!new)[^/]+$/, // /posts/123 형태만 (컨텐츠 상세), /posts/new 제외
   ],
 };
 
