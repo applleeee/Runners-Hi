@@ -31,6 +31,11 @@ export default function LoginPage() {
       const emailSchema = z.email({ message: "이메일 형식이 맞지 않습니다." });
       const emailResult = emailSchema.safeParse(email);
 
+      if (!email.trim()) {
+        alert("이메일 계정을 입력 후 시도해 주세요.");
+        return;
+      }
+
       if (!emailResult.success) {
         alert(emailResult.error.issues[0].message);
         return;
