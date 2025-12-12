@@ -12,11 +12,11 @@ interface PostBottomSheetProps {
   content: ContentDetail;
 }
 
-// 스냅 포인트: 모두 비율로 정의하여 PC/모바일 환경에서 일관된 UI 제공
-// 픽셀 단위는 모바일 브라우저의 동적 뷰포트(주소창 숨김 등)로 인해 차이 발생
-const SNAP_MIN = 0.1; // ~10% - 드래그 핸들만
-const SNAP_MID = 0.55; // ~55% - 요약 정보 전체(사진 제외)
-const SNAP_MAX = 0.95; // 95% - 전체 컨텐츠
+// 스냅 포인트: 고정 픽셀값 사용
+// 환경별 차이는 있지만, 컨텐츠를 상단 정렬하여 여백 문제 해결
+const SNAP_MIN = "100px"; // 드래그 핸들만
+const SNAP_MID = "440px"; // 요약 정보
+const SNAP_MAX = 0.95; // 전체 (비율)
 
 const snapPoints: (number | string)[] = [SNAP_MIN, SNAP_MID, SNAP_MAX];
 
@@ -42,7 +42,7 @@ export function PostBottomSheet({ content }: PostBottomSheetProps) {
             "fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-[720px] flex-col rounded-t-3xl bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
           )}
           style={{
-            height: `${(snapPoints[snapPoints.length - 1] as number) * 100}vh`,
+            height: `${SNAP_MAX * 100}dvh`,
           }}
         >
           {/* 드래그 핸들 */}
@@ -56,17 +56,16 @@ export function PostBottomSheet({ content }: PostBottomSheetProps) {
             러닝 기록 상세
           </DrawerPrimitive.Title>
 
-          {/* 스크롤 가능한 콘텐츠 */}
+          {/* 컨텐츠 영역 - flex-1 제거하고 컨텐츠 크기에 맞춤 */}
           <div
             className={cn(
-              "flex-1 px-6",
-              // 최대 스냅 포인트에서만 스크롤 가능
-              isMaxSnap ? "overflow-y-auto" : "overflow-hidden"
+              "px-6",
+              isMaxSnap ? "flex-1 overflow-y-auto" : "overflow-hidden"
             )}
           >
             <div className="space-y-5 pb-20">
-              {/* 항상 표시: 타입 태그 (최소 snap에서는 태그만) */}
-              <PostSummary content={content} showFull={!isMinSnap} />
+              {/* 최소 snap에서는 아무것도 표시 안함 */}
+              {!isMinSnap && <PostSummary content={content} showFull />}
 
               {/* 최대 snap에서만 표시: 이미지, 코멘트, 프로필 */}
               {isMaxSnap && (
