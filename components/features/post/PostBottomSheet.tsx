@@ -15,7 +15,7 @@ interface PostBottomSheetProps {
 // 스냅 포인트: 고정 픽셀값 사용
 // 환경별 차이는 있지만, 컨텐츠를 상단 정렬하여 여백 문제 해결
 const SNAP_MIN = "50px"; // 드래그 핸들만
-const SNAP_MID = "360px"; // 요약 정보
+const SNAP_MID = "320px"; // 요약 정보
 const SNAP_MAX = 0.95; // 전체 (비율)
 
 const snapPoints: (number | string)[] = [SNAP_MIN, SNAP_MID, SNAP_MAX];
