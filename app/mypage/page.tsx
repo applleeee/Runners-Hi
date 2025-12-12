@@ -87,7 +87,7 @@ export default function MyPage() {
 
   return (
     <div className="flex flex-1 flex-col bg-(--bg)">
-      <Header variant="main" />
+      <Header variant="back" title="MY" />
 
       <main className="flex flex-1 flex-col">
         <div className="flex flex-1 flex-col px-4 py-4">
@@ -156,10 +156,7 @@ export default function MyPage() {
 
             {/* 로그아웃 버튼 */}
             <div className="text-center">
-              <UnderlineButton
-                onClick={handleLogout}
-                disabled={logoutLoading}
-              >
+              <UnderlineButton onClick={handleLogout} disabled={logoutLoading}>
                 로그아웃
               </UnderlineButton>
             </div>
