@@ -12,11 +12,11 @@ interface PostBottomSheetProps {
   content: ContentDetail;
 }
 
-// 스냅 포인트: 최소(픽셀), 중간(픽셀), 최대(비율)
-// 픽셀로 고정하면 모든 화면에서 일관된 내용이 보임
-const SNAP_MIN = "130px"; // 타입 태그만
-const SNAP_MID = "430px"; // 요약 정보 전체
-const SNAP_MAX = 0.95; // 전체 컨텐츠
+// 스냅 포인트: 모두 비율로 정의하여 PC/모바일 환경에서 일관된 UI 제공
+// 픽셀 단위는 모바일 브라우저의 동적 뷰포트(주소창 숨김 등)로 인해 차이 발생
+const SNAP_MIN = 0.1; // ~10% - 드래그 핸들만
+const SNAP_MID = 0.55; // ~55% - 요약 정보 전체(사진 제외)
+const SNAP_MAX = 0.95; // 95% - 전체 컨텐츠
 
 const snapPoints: (number | string)[] = [SNAP_MIN, SNAP_MID, SNAP_MAX];
 
