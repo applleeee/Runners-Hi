@@ -14,8 +14,8 @@ interface PostBottomSheetProps {
 
 // 스냅 포인트: 고정 픽셀값 사용
 // 환경별 차이는 있지만, 컨텐츠를 상단 정렬하여 여백 문제 해결
-const SNAP_MIN = "100px"; // 드래그 핸들만
-const SNAP_MID = "440px"; // 요약 정보
+const SNAP_MIN = "50px"; // 드래그 핸들만
+const SNAP_MID = "360px"; // 요약 정보
 const SNAP_MAX = 0.95; // 전체 (비율)
 
 const snapPoints: (number | string)[] = [SNAP_MIN, SNAP_MID, SNAP_MAX];
@@ -42,7 +42,7 @@ export function PostBottomSheet({ content }: PostBottomSheetProps) {
             "fixed bottom-0 left-0 right-0 z-50 mx-auto flex max-w-[720px] flex-col rounded-t-3xl bg-white shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
           )}
           style={{
-            height: `${SNAP_MAX * 100}dvh`,
+            height: "100dvh",
           }}
         >
           {/* 드래그 핸들 */}
