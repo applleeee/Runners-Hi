@@ -43,6 +43,11 @@ export function ImageUploader({
   }, [api]);
 
   const handleFileSelect = () => {
+    // 이미 최대 개수에 도달했으면 alert
+    if (images.length >= maxImages) {
+      alert("이미지는 10개까지 선택 가능합니다.");
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -101,6 +106,12 @@ export function ImageUploader({
     // 남은 슬롯만큼만 추가
     const filesToAdd = validFiles.slice(0, remainingSlots);
 
+    // 선택한 파일이 남은 슬롯보다 많으면 alert
+    if (validFiles.length > remainingSlots) {
+      alert("이미지는 10개까지 선택 가능합니다.");
+      return;
+    }
+
     // 파일을 임시 URL로 변환 (실제 업로드는 submit 시)
     const newImageUrls = filesToAdd.map((file) => URL.createObjectURL(file));
     const newFiles = [...files, ...filesToAdd];
@@ -132,9 +143,8 @@ export function ImageUploader({
     api?.scrollTo(index);
   };
 
-  // 추가 카드 표시 여부 및 총 아이템 개수 계산
-  const showAddCard = images.length < maxImages;
-  const totalItems = images.length + (showAddCard ? 1 : 0);
+  // 총 아이템 개수 계산 (추가 카드 항상 표시)
+  const totalItems = images.length + 1;
 
   return (
     <div className="space-y-3">
@@ -188,20 +198,18 @@ export function ImageUploader({
             </CarouselItem>
           ))}
 
-          {/* 이미지 추가 카드 (최대 개수 미만일 때만 표시) */}
-          {showAddCard && (
-            <CarouselItem className="basis-[85%]">
-              <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
-                <button
-                  type="button"
-                  onClick={handleFileSelect}
-                  className="flex h-full w-full flex-col items-center justify-center gap-3 text-(--sub-text) transition-colors hover:text-(--black)"
-                >
-                  <Camera className="h-12 w-12" />
-                </button>
-              </div>
-            </CarouselItem>
-          )}
+          {/* 이미지 추가 카드 (항상 표시, 클릭 시 최대 개수 체크) */}
+          <CarouselItem className="basis-[85%]">
+            <div className="relative aspect-square overflow-hidden rounded-3xl border border-dashed border-(--unselect) bg-background">
+              <button
+                type="button"
+                onClick={handleFileSelect}
+                className="flex h-full w-full flex-col items-center justify-center gap-3 text-(--sub-text) transition-colors hover:text-(--black)"
+              >
+                <Camera className="h-12 w-12" />
+              </button>
+            </div>
+          </CarouselItem>
         </CarouselContent>
       </Carousel>
 
