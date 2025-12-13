@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowLeft, X } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, MoreVertical, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type HeaderProps =
@@ -16,16 +22,17 @@ type HeaderProps =
       className?: string;
     }
   | {
-      variant: "back-close";
+      variant: "close";
       title: string;
-      onBack?: () => void;
       onClose?: () => void;
       className?: string;
     }
   | {
-      variant: "close";
+      variant: "back-more";
       title: string;
-      onClose?: () => void;
+      onBack?: () => void;
+      onEdit?: () => void;
+      onDelete?: () => void;
       className?: string;
     };
 
@@ -34,7 +41,7 @@ export function Header(props: HeaderProps) {
 
   const handleBack = () => {
     if (
-      (props.variant === "back" || props.variant === "back-close") &&
+      (props.variant === "back" || props.variant === "back-more") &&
       props.onBack
     ) {
       props.onBack();
@@ -44,10 +51,7 @@ export function Header(props: HeaderProps) {
   };
 
   const handleClose = () => {
-    if (
-      (props.variant === "back-close" || props.variant === "close") &&
-      props.onClose
-    ) {
+    if (props.variant === "close" && props.onClose) {
       props.onClose();
     } else {
       router.back();
@@ -109,36 +113,6 @@ export function Header(props: HeaderProps) {
     );
   }
 
-  if (props.variant === "back-close") {
-    return (
-      <header
-        className={`flex items-center justify-between bg-white px-4 py-4 ${
-          props.className || ""
-        }`}
-      >
-        <button
-          type="button"
-          onClick={handleBack}
-          className="cursor-pointer mr-4 shrink-0"
-          aria-label="뒤로가기"
-        >
-          <ArrowLeft className="h-6 w-6 text-(--black)" />
-        </button>
-        <h1 className="flex-1 truncate text-center text-lg font-medium text-(--black)">
-          {props.title}
-        </h1>
-        <button
-          type="button"
-          onClick={handleClose}
-          className="cursor-pointer ml-4 shrink-0"
-          aria-label="닫기"
-        >
-          <X className="h-6 w-6 text-(--black)" />
-        </button>
-      </header>
-    );
-  }
-
   if (props.variant === "close") {
     return (
       <header
@@ -157,6 +131,43 @@ export function Header(props: HeaderProps) {
         >
           <X className="h-6 w-6 text-(--black)" />
         </button>
+      </header>
+    );
+  }
+
+  if (props.variant === "back-more") {
+    return (
+      <header
+        className={`relative flex items-center justify-center bg-white px-4 py-4 ${
+          props.className || ""
+        }`}
+      >
+        <button
+          type="button"
+          onClick={handleBack}
+          className="cursor-pointer absolute left-4 shrink-0"
+          aria-label="뒤로가기"
+        >
+          <ArrowLeft className="h-6 w-6 text-(--black)" />
+        </button>
+        <h1 className="whitespace-nowrap text-lg font-bold text-(--black)">
+          {props.title}
+        </h1>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="cursor-pointer absolute right-4 shrink-0"
+              aria-label="더보기"
+            >
+              <MoreVertical className="h-6 w-6 text-(--black)" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={props.onEdit}>수정</DropdownMenuItem>
+            <DropdownMenuItem onClick={props.onDelete}>삭제</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
     );
   }

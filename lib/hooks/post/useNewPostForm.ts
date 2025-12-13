@@ -3,7 +3,9 @@ import { getCurrentUser } from "@/lib/api/auth";
 import {
   ContentType,
   createContent,
+  getContentById,
   getContentTypesByParentId,
+  updateContent,
 } from "@/lib/api/content";
 import { uploadImage } from "@/lib/api/storage";
 import { GpxData } from "@/lib/utils/gpx-parser";
@@ -29,18 +31,28 @@ export interface NewPostFormData {
   useMainForEnd: boolean;
 }
 
-export function useNewPostForm() {
+export function useNewPostForm(contentId?: string) {
   const router = useRouter();
+
+  // 수정 모드 여부
+  const isEditMode = !!contentId;
 
   // Form states
   const [gpxData, setGpxData] = useState<GpxData | null>(null);
   const [title, setTitle] = useState("");
-  const [images, setImages] = useState<string[]>([]);
-  const [imageFiles, setImageFiles] = useState<File[]>([]); // 실제 파일 저장
   const [memo, setMemo] = useState("");
   const [runningTypes, setRunningTypes] = useState<ContentType[]>([]);
   const [selectedTypeId, setSelectedTypeId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(isEditMode);
+
+  // 이미지 관리 (기존 URL과 새 파일 분리)
+  const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+  const [newImagePreviews, setNewImagePreviews] = useState<string[]>([]);
+  const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
+
+  // 표시용 이미지 배열 (기존 URL + 새 미리보기)
+  const images = [...existingImageUrls, ...newImagePreviews];
 
   // Location states
   const [locations, setLocations] = useState<LocationState>({
@@ -60,7 +72,8 @@ export function useNewPostForm() {
       try {
         const data = await getContentTypesByParentId(1); // 러닝(id:1)의 하위 타입
         setRunningTypes(data);
-        if (data.length > 0) {
+        // 수정 모드가 아닐 때만 첫 번째 타입을 기본값으로 설정
+        if (data.length > 0 && !isEditMode) {
           setSelectedTypeId(data[0].id);
         }
       } catch {
@@ -69,10 +82,87 @@ export function useNewPostForm() {
     };
 
     fetchRunningTypes();
-  }, []);
+  }, [isEditMode]);
 
-  // sessionStorage에서 GPX 데이터 로드
+  // 수정 모드: 기존 데이터 로드
   useEffect(() => {
+    if (!contentId) return;
+
+    const fetchContent = async () => {
+      try {
+        setIsLoading(true);
+        const content = await getContentById(contentId);
+
+        // GPX 데이터 설정
+        setGpxData(content.gpxData);
+
+        // 폼 데이터 설정
+        setTitle(content.title);
+        setMemo(content.comment || "");
+        setSelectedTypeId(content.typeId);
+        setExistingImageUrls(content.imageUrls);
+
+        // Location 변환 (Location -> PlaceResult)
+        const mainPlace: PlaceResult = {
+          placeName: content.mainLocation.name,
+          address: content.mainLocation.address || "",
+          lat: content.mainLocation.lat || 0,
+          lng: content.mainLocation.lng || 0,
+          kakaoPlaceId: content.mainLocation.kakaoPlaceId || null,
+        };
+
+        const startPlace: PlaceResult | null = content.startLocation
+          ? {
+              placeName: content.startLocation.name,
+              address: content.startLocation.address || "",
+              lat: content.startLocation.lat || 0,
+              lng: content.startLocation.lng || 0,
+              kakaoPlaceId: content.startLocation.kakaoPlaceId || null,
+            }
+          : null;
+
+        const endPlace: PlaceResult | null = content.endLocation
+          ? {
+              placeName: content.endLocation.name,
+              address: content.endLocation.address || "",
+              lat: content.endLocation.lat || 0,
+              lng: content.endLocation.lng || 0,
+              kakaoPlaceId: content.endLocation.kakaoPlaceId || null,
+            }
+          : null;
+
+        setLocations({
+          main: mainPlace,
+          start: startPlace,
+          end: endPlace,
+        });
+
+        // useMainForStart/End 계산
+        const isSameLocation = (a: PlaceResult | null, b: PlaceResult | null) => {
+          if (!a || !b) return false;
+          return a.kakaoPlaceId
+            ? a.kakaoPlaceId === b.kakaoPlaceId
+            : a.placeName === b.placeName;
+        };
+
+        setUseMainForStart(isSameLocation(mainPlace, startPlace));
+        setUseMainForEnd(isSameLocation(mainPlace, endPlace));
+      } catch (error) {
+        console.error("콘텐츠 로드 실패:", error);
+        alert("콘텐츠를 불러오는데 실패했습니다.");
+        router.replace("/");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [contentId, router]);
+
+  // 등록 모드: sessionStorage에서 GPX 데이터 로드
+  useEffect(() => {
+    if (isEditMode) return; // 수정 모드면 스킵
+
     const loadGpxData = () => {
       const stored = sessionStorage.getItem("gpxData");
       if (stored) {
@@ -107,7 +197,7 @@ export function useNewPostForm() {
     } else {
       router.replace("/posts/new");
     }
-  }, [router]);
+  }, [router, isEditMode]);
 
   // 폼 검증 함수
   const validateForm = (): boolean => {
@@ -160,7 +250,11 @@ export function useNewPostForm() {
     }
 
     if (!gpxData || !selectedTypeId || !locations.main) {
-      alert("러닝 기록 등록에 실패했습니다. 다시 시도해주세요.");
+      alert(
+        isEditMode
+          ? "러닝 기록 수정에 실패했습니다. 다시 시도해주세요."
+          : "러닝 기록 등록에 실패했습니다. 다시 시도해주세요."
+      );
       return;
     }
 
@@ -175,26 +269,43 @@ export function useNewPostForm() {
         return;
       }
 
-      // 2. 이미지 업로드 (병렬 처리)
-      const uploadedImageUrls = await Promise.all(
-        imageFiles.map((file) => uploadImage(file, user.id))
+      // 2. 새 이미지 업로드 (병렬 처리)
+      const uploadedNewImageUrls = await Promise.all(
+        newImageFiles.map((file) => uploadImage(file, user.id))
       );
 
-      // 3. 콘텐츠 생성
-      await createContent({
-        userId: user.id,
-        title,
-        typeId: selectedTypeId,
-        mainLocation: locations.main,
-        startLocation: useMainForStart ? locations.main : locations.start,
-        endLocation: useMainForEnd ? locations.main : locations.end,
-        gpxData,
-        imageUrls: uploadedImageUrls,
-        comment: memo,
-      });
+      // 3. 최종 이미지 URL 배열 (기존 URL + 새로 업로드된 URL)
+      const finalImageUrls = [...existingImageUrls, ...uploadedNewImageUrls];
 
-      // 4. 성공 처리
-      sessionStorage.removeItem("gpxData");
+      if (isEditMode && contentId) {
+        // 수정 모드
+        await updateContent({
+          contentId,
+          title,
+          typeId: selectedTypeId,
+          mainLocation: locations.main,
+          startLocation: useMainForStart ? locations.main : locations.start,
+          endLocation: useMainForEnd ? locations.main : locations.end,
+          imageUrls: finalImageUrls,
+          comment: memo,
+        });
+      } else {
+        // 등록 모드
+        await createContent({
+          userId: user.id,
+          title,
+          typeId: selectedTypeId,
+          mainLocation: locations.main,
+          startLocation: useMainForStart ? locations.main : locations.start,
+          endLocation: useMainForEnd ? locations.main : locations.end,
+          gpxData,
+          imageUrls: finalImageUrls,
+          comment: memo,
+        });
+
+        // 등록 모드에서만 sessionStorage 정리
+        sessionStorage.removeItem("gpxData");
+      }
 
       // 성공 콜백 실행 (토스트 표시)
       if (onSuccess) {
@@ -206,8 +317,12 @@ export function useNewPostForm() {
         router.push("/");
       }, 1000);
     } catch (error) {
-      console.error("콘텐츠 저장 실패:", error);
-      alert("러닝 기록 등록에 실패했습니다. 다시 시도해주세요.");
+      console.error(isEditMode ? "콘텐츠 수정 실패:" : "콘텐츠 저장 실패:", error);
+      alert(
+        isEditMode
+          ? "러닝 기록 수정에 실패했습니다. 다시 시도해주세요."
+          : "러닝 기록 등록에 실패했습니다. 다시 시도해주세요."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -215,16 +330,58 @@ export function useNewPostForm() {
 
   // 닫기 핸들러
   const handleClose = () => {
-    sessionStorage.removeItem("gpxData");
+    if (!isEditMode) {
+      sessionStorage.removeItem("gpxData");
+    }
     router.push("/");
   };
 
-  // 이미지 변경 핸들러 (파일도 함께 저장)
+  // 이미지 변경 핸들러 (기존 URL과 새 파일 분리 관리)
   const handleImagesChange = (newImages: string[], files?: File[]) => {
-    setImages(newImages);
+    // 기존 URL 개수
+    const existingCount = existingImageUrls.length;
+
+    // 새로운 이미지 배열에서 기존 URL과 새 미리보기 분리
+    const newExistingUrls = newImages.slice(0, existingCount).filter((url) =>
+      existingImageUrls.includes(url)
+    );
+    const newPreviews = newImages.slice(existingCount);
+
+    setExistingImageUrls(newExistingUrls);
+    setNewImagePreviews(newPreviews);
+
     if (files) {
-      setImageFiles(files);
+      // files 배열은 새로 추가된 파일들만 포함
+      // 삭제된 이미지에 해당하는 파일도 제거
+      const deletedPreviewCount = newImagePreviews.length - newPreviews.length;
+      if (deletedPreviewCount > 0) {
+        setNewImageFiles((prev) => prev.slice(0, prev.length - deletedPreviewCount));
+      } else if (files.length > newImageFiles.length) {
+        // 새 파일이 추가된 경우
+        setNewImageFiles(files);
+      }
     }
+  };
+
+  // 이미지 삭제 핸들러 (인덱스 기반)
+  const handleRemoveImage = (index: number) => {
+    const existingCount = existingImageUrls.length;
+
+    if (index < existingCount) {
+      // 기존 URL 삭제
+      setExistingImageUrls((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      // 새 이미지 삭제
+      const newIndex = index - existingCount;
+      setNewImagePreviews((prev) => prev.filter((_, i) => i !== newIndex));
+      setNewImageFiles((prev) => prev.filter((_, i) => i !== newIndex));
+    }
+  };
+
+  // 새 이미지 추가 핸들러
+  const handleAddImages = (previews: string[], files: File[]) => {
+    setNewImagePreviews((prev) => [...prev, ...previews]);
+    setNewImageFiles((prev) => [...prev, ...files]);
   };
 
   return {
@@ -247,6 +404,14 @@ export function useNewPostForm() {
     isPlaceSearchOpen,
     setIsPlaceSearchOpen,
     isSubmitting,
+    isLoading,
+    isEditMode,
+
+    // Image handlers
+    existingImageUrls,
+    newImageFiles,
+    handleRemoveImage,
+    handleAddImages,
 
     // Handlers
     handleOpenPlaceSearch,

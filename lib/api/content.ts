@@ -70,6 +70,7 @@ export interface ContentDetail {
   pace: number;
   startTime: Date | null;
   endTime: Date | null;
+  typeId: number;
   typeName: string;
   mainLocation: Location;
   startLocation: Location | null;
@@ -545,6 +546,7 @@ export async function getContentById(id: string): Promise<ContentDetail> {
       pace,
       start_time,
       end_time,
+      type_id,
       created_at,
       ContentType!inner (
         name
@@ -595,16 +597,37 @@ export async function getContentById(id: string): Promise<ContentDetail> {
   const contentType = data.ContentType as unknown as ContentTypeRow;
   const user = data.User as unknown as UserRow;
 
+  // gpxData 내부 날짜 필드 파싱
+  const rawGpxData = data.gpx_data as {
+    startTime?: string | null;
+    endTime?: string | null;
+    points?: Array<{ lat: number; lng: number; time?: string; elevation?: number }>;
+    totalDistance: number;
+    duration: number;
+    pace: number;
+  };
+
+  const parsedGpxData: GpxData = {
+    ...rawGpxData,
+    startTime: rawGpxData.startTime ? new Date(rawGpxData.startTime) : null,
+    endTime: rawGpxData.endTime ? new Date(rawGpxData.endTime) : null,
+    points: (rawGpxData.points || []).map((p) => ({
+      ...p,
+      time: p.time ? new Date(p.time) : undefined,
+    })),
+  };
+
   return {
     id: data.id,
     title: data.title,
     comment: data.comment,
-    gpxData: data.gpx_data as GpxData,
+    gpxData: parsedGpxData,
     imageUrls: data.image_urls || [],
     totalDistance: data.total_distance,
     pace: data.pace,
     startTime: data.start_time ? new Date(data.start_time) : null,
     endTime: data.end_time ? new Date(data.end_time) : null,
+    typeId: data.type_id,
     typeName: contentType.name,
     mainLocation: {
       id: mainLocationData.id,
@@ -640,4 +663,99 @@ export async function getContentById(id: string): Promise<ContentDetail> {
     },
     createdAt: new Date(data.created_at),
   };
+}
+
+/**
+ * 콘텐츠를 삭제합니다.
+ * ContentLocation을 먼저 삭제한 후 Content를 삭제합니다.
+ */
+export async function deleteContent(contentId: string): Promise<void> {
+  const supabase = createClient();
+
+  // 1. ContentLocation 먼저 삭제 (FK 제약)
+  const { error: locationError } = await supabase
+    .from("ContentLocation")
+    .delete()
+    .eq("content_id", contentId);
+
+  if (locationError) throw locationError;
+
+  // 2. Content 삭제
+  const { error: contentError } = await supabase
+    .from("Content")
+    .delete()
+    .eq("id", contentId);
+
+  if (contentError) throw contentError;
+}
+
+export interface UpdateContentParams {
+  contentId: string;
+  title: string;
+  typeId: number;
+  mainLocation: PlaceResult;
+  startLocation: PlaceResult | null;
+  endLocation: PlaceResult | null;
+  imageUrls: string[];
+  comment: string;
+}
+
+/**
+ * 콘텐츠를 수정합니다.
+ * ContentLocation을 삭제 후 재생성하고, Content를 업데이트합니다.
+ */
+export async function updateContent(
+  params: UpdateContentParams
+): Promise<void> {
+  const supabase = createClient();
+
+  const {
+    contentId,
+    title,
+    typeId,
+    mainLocation,
+    startLocation,
+    endLocation,
+    imageUrls,
+    comment,
+  } = params;
+
+  // 1. Location upsert 후 ID 획득
+  const mainLocationId = await upsertLocation(mainLocation);
+  const startLocationId = startLocation
+    ? await upsertLocation(startLocation)
+    : null;
+  const endLocationId = endLocation ? await upsertLocation(endLocation) : null;
+
+  // 2. 기존 ContentLocation 삭제
+  const { error: deleteLocationError } = await supabase
+    .from("ContentLocation")
+    .delete()
+    .eq("content_id", contentId);
+
+  if (deleteLocationError) throw deleteLocationError;
+
+  // 3. Content 업데이트
+  const { error: updateError } = await supabase
+    .from("Content")
+    .update({
+      title,
+      type_id: typeId,
+      image_urls: imageUrls,
+      comment: comment || null,
+    })
+    .eq("id", contentId);
+
+  if (updateError) throw updateError;
+
+  // 4. ContentLocation 재생성
+  await createContentLocation(contentId, mainLocationId, "main");
+
+  if (startLocationId) {
+    await createContentLocation(contentId, startLocationId, "start");
+  }
+
+  if (endLocationId) {
+    await createContentLocation(contentId, endLocationId, "end");
+  }
 }

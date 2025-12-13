@@ -9,8 +9,12 @@ import { useToast } from "@/components/ui/toast";
 import { useNewPostForm } from "@/lib/hooks/post/useNewPostForm";
 import { formatDistance, formatPace } from "@/lib/utils/gpx-parser";
 import { Check } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export default function NewPostDetailPage() {
+  const searchParams = useSearchParams();
+  const contentId = searchParams.get("contentId");
+
   const { showToast, ToastComponent } = useToast();
 
   const {
@@ -32,15 +36,17 @@ export default function NewPostDetailPage() {
     isPlaceSearchOpen,
     setIsPlaceSearchOpen,
     isSubmitting,
+    isLoading,
+    isEditMode,
     handleOpenPlaceSearch,
     handleSelectPlace,
     handleSubmit,
     handleClose,
-  } = useNewPostForm();
+  } = useNewPostForm(contentId || undefined);
 
   const onSubmit = () => {
     handleSubmit(() => {
-      showToast("러닝 기록이 등록되었습니다.");
+      showToast(isEditMode ? "러닝 기록이 수정되었습니다." : "러닝 기록이 등록되었습니다.");
     });
   };
 
@@ -55,7 +61,8 @@ export default function NewPostDetailPage() {
     return `${year}.${month}.${day} ${hours}:${mins}`;
   };
 
-  if (!gpxData) {
+  // 로딩 중 (수정 모드에서 데이터 로드 중)
+  if (isLoading || !gpxData) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <p className="text-(--sub-text)">로딩 중...</p>
@@ -70,7 +77,7 @@ export default function NewPostDetailPage() {
     <div className="flex flex-1 flex-col overflow-hidden bg-(--bg)">
       <Header
         variant="close"
-        title="러닝 기록 등록하기"
+        title={isEditMode ? "러닝 기록 수정하기" : "러닝 기록 등록하기"}
         onClose={handleClose}
       />
 
@@ -264,7 +271,13 @@ export default function NewPostDetailPage() {
         variant="primary"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "등록 중..." : "러닝 등록하기"}
+        {isSubmitting
+          ? isEditMode
+            ? "수정 중..."
+            : "등록 중..."
+          : isEditMode
+            ? "수정하기"
+            : "러닝 등록하기"}
       </BottomButton>
 
       {/* 장소 검색 모달 */}

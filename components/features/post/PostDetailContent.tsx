@@ -1,16 +1,35 @@
 "use client";
 
 import { Header } from "@/components/common/Header";
+import { Modal } from "@/components/common/Modal";
 import { PostBottomSheet } from "@/components/features/post/PostBottomSheet";
 import { KakaoMap } from "@/components/features/running/KakaoMap";
 import { usePostDetail } from "@/lib/hooks/post/usePostDetail";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface PostDetailContentProps {
   id: string;
 }
 
 export function PostDetailContent({ id }: PostDetailContentProps) {
-  const { content, isLoading, error } = usePostDetail(id);
+  const router = useRouter();
+  const { content, isLoading, error, isOwner, isDeleting, handleDelete } =
+    usePostDetail(id);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const onEditClick = () => {
+    router.push(`/posts/new/detail?contentId=${id}`);
+  };
+
+  const onDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const onDeleteConfirm = () => {
+    setShowDeleteDialog(false);
+    handleDelete();
+  };
 
   // 로딩 상태
   if (isLoading) {
@@ -51,11 +70,21 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
     <div className="relative h-dvh overflow-hidden">
       {/* 상단 헤더 - 반투명 배경 */}
       <div className="absolute left-0 right-0 top-0 z-40">
-        <Header
-          variant="back"
-          title="러닝 기록"
-          className="bg-white/80 backdrop-blur-sm"
-        />
+        {isOwner ? (
+          <Header
+            variant="back-more"
+            title="러닝 기록"
+            className="bg-white/80 backdrop-blur-sm"
+            onEdit={onEditClick}
+            onDelete={onDeleteClick}
+          />
+        ) : (
+          <Header
+            variant="back"
+            title="러닝 기록"
+            className="bg-white/80 backdrop-blur-sm"
+          />
+        )}
       </div>
 
       {/* 지도 배경 */}
@@ -65,6 +94,21 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
 
       {/* Bottom Sheet */}
       <PostBottomSheet content={content} />
+
+      {/* 삭제 확인 모달 */}
+      <Modal
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        confirmText="삭제"
+        onConfirm={onDeleteConfirm}
+        isLoading={isDeleting}
+      >
+        <div className="flex justify-center">
+          <p className="text-sm font-bold text-(--black)">
+            해당 콘텐츠를 삭제하시겠습니까?
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
