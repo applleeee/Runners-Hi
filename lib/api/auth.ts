@@ -35,6 +35,7 @@ export async function signOut() {
 
 /**
  * 현재 로그인한 사용자 정보를 가져옵니다.
+ * 로그인하지 않은 경우 null을 반환합니다.
  */
 export async function getCurrentUser() {
   const supabase = createClient();
@@ -45,6 +46,24 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) throw error;
+  return user;
+}
+
+/**
+ * 인증된 사용자 정보를 가져옵니다.
+ * 로그인하지 않은 경우 에러를 throw합니다.
+ */
+export async function getAuthenticatedUser() {
+  const supabase = createClient();
+
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error) throw error;
+  if (!user) throw new Error("로그인이 필요합니다.");
+
   return user;
 }
 

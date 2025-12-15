@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/model/supabase";
+import { getAuthenticatedUser } from "./auth";
 
 export type UserProfile = Tables<"User">;
 
@@ -23,15 +24,7 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
  * 현재 로그인한 사용자의 프로필 정보를 조회합니다.
  */
 export async function getCurrentUserProfile(): Promise<UserProfile> {
-  const supabase = createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError) throw authError;
-  if (!user) throw new Error("로그인이 필요합니다.");
-
+  const user = await getAuthenticatedUser();
   return getUserProfile(user.id);
 }
 
@@ -56,13 +49,7 @@ export async function checkNicknameExists(nickname: string): Promise<boolean> {
  */
 export async function updateNickname(nickname: string): Promise<void> {
   const supabase = createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError) throw authError;
-  if (!user) throw new Error("로그인이 필요합니다.");
+  const user = await getAuthenticatedUser();
 
   // 닉네임 중복 체크
   const exists = await checkNicknameExists(nickname);
@@ -83,13 +70,7 @@ export async function updateNickname(nickname: string): Promise<void> {
  */
 export async function updateProfileImage(imageUrl: string): Promise<void> {
   const supabase = createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError) throw authError;
-  if (!user) throw new Error("로그인이 필요합니다.");
+  const user = await getAuthenticatedUser();
 
   const { error } = await supabase
     .from("User")
@@ -104,13 +85,7 @@ export async function updateProfileImage(imageUrl: string): Promise<void> {
  */
 export async function uploadProfileImage(file: File): Promise<string> {
   const supabase = createClient();
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError) throw authError;
-  if (!user) throw new Error("로그인이 필요합니다.");
+  const user = await getAuthenticatedUser();
 
   // 파일 확장자 추출
   const fileExt = file.name.split(".").pop();
