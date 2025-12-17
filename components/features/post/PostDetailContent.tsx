@@ -93,7 +93,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
       </div>
 
       {/* Bottom Sheet */}
-      <PostBottomSheet content={content} />
+      <PostBottomSheet content={content} isOwner={isOwner} />
 
       {/* 삭제 확인 모달 */}
       <Modal

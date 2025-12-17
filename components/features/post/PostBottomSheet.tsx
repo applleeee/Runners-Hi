@@ -10,6 +10,7 @@ import { PostSummary } from "./PostSummary";
 
 interface PostBottomSheetProps {
   content: ContentDetail;
+  isOwner?: boolean;
 }
 
 // 스냅 포인트: 고정 픽셀값 사용
@@ -20,7 +21,7 @@ const SNAP_MAX = 0.95; // 전체 (비율)
 
 const snapPoints: (number | string)[] = [SNAP_MIN, SNAP_MID, SNAP_MAX];
 
-export function PostBottomSheet({ content }: PostBottomSheetProps) {
+export function PostBottomSheet({ content, isOwner }: PostBottomSheetProps) {
   const [snap, setSnap] = useState<number | string | null>(SNAP_MID);
 
   // 현재 snap 상태 판별
@@ -71,7 +72,11 @@ export function PostBottomSheet({ content }: PostBottomSheetProps) {
               {isMaxSnap && (
                 <>
                   {content.imageUrls.length > 0 && (
-                    <PostImages images={content.imageUrls} />
+                    <PostImages
+                      images={content.imageUrls}
+                      isOwner={isOwner}
+                      content={content}
+                    />
                   )}
                   <PostDetails content={content} />
                 </>
