@@ -16,7 +16,8 @@ export function useLogout() {
       await signOut();
 
       // 로그아웃 성공
-      router.push("/login");
+      alert("로그아웃 되었습니다.");
+      router.push("/");
       router.refresh();
     } catch (err: unknown) {
       if (err instanceof AuthApiError) {
