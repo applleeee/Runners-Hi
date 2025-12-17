@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/api/auth";
 import {
-  getContentById,
   deleteContent,
+  getContentById,
   type ContentDetail,
 } from "@/lib/api/content";
-import { getCurrentUser } from "@/lib/api/auth";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export function usePostDetail(id: string) {
   const router = useRouter();
@@ -19,12 +19,19 @@ export function usePostDetail(id: string) {
     async function fetchContent() {
       try {
         setIsLoading(true);
-        const [data, currentUser] = await Promise.all([
-          getContentById(id),
-          getCurrentUser(),
-        ]);
+
+        // 콘텐츠는 반드시 가져오고
+        const data = await getContentById(id);
         setContent(data);
-        setIsOwner(currentUser?.id === data.user.id);
+
+        // 현재 사용자는 실패해도 무시 (소유자 판단용일 뿐)
+        try {
+          const currentUser = await getCurrentUser();
+          setIsOwner(currentUser?.id === data.user.id);
+        } catch {
+          setIsOwner(false);
+        }
+
         setError(null);
       } catch (err) {
         setError(err as Error);
@@ -40,7 +47,10 @@ export function usePostDetail(id: string) {
 
     try {
       setIsDeleting(true);
+
       await deleteContent(content.id);
+      alert("삭제되었습니다.");
+
       router.replace("/");
     } catch (err) {
       setError(err as Error);

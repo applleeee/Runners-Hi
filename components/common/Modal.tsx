@@ -34,12 +34,14 @@ export function Modal({
         className="w-[calc(100%-2rem)] max-w-sm"
         showCloseButton={false}
       >
-        {header && (
+        {header ? (
           <DialogHeader className="-mx-6 -mt-6 rounded-t-lg bg-(--sub-color) px-6 py-3">
             <DialogTitle className="text-base font-bold text-(--black)">
               {header}
             </DialogTitle>
           </DialogHeader>
+        ) : (
+          <DialogTitle className="sr-only">확인</DialogTitle>
         )}
 
         <div className={header ? "" : "pt-2"}>{children}</div>
