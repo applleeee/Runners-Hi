@@ -3,53 +3,27 @@
 import { BottomButton } from "@/components/common/BottomButton";
 import { Header } from "@/components/common/Header";
 import { Input } from "@/components/ui/input";
-import { createClient } from "@/lib/supabase/client";
+import { useResetPassword } from "@/lib/hooks/useResetPassword";
 import { useVerifyRecoveryToken } from "@/lib/hooks/useVerifyRecoveryToken";
-import { AuthApiError } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
 import { Suspense, useState } from "react";
 
 function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
 
-  const supabase = createClient();
-  const { isVerified, isVerifying, error: verifyError } = useVerifyRecoveryToken();
+  const {
+    isVerified,
+    isVerifying,
+    error: verifyError,
+  } = useVerifyRecoveryToken();
+
+  const { handleResetPassword, loading, error } = useResetPassword();
 
   const isFormValid = newPassword.length >= 6;
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) throw error;
-
-      alert("비밀번호가 변경되었습니다.");
-      router.push("/");
-    } catch (err) {
-      if (err instanceof Error) {
-        const authError = err as AuthApiError;
-        if (authError.code === "same_password") {
-          setError("이전 비밀번호와 다른 비밀번호를 입력해주세요.");
-        } else {
-          setError("비밀번호 변경에 실패했습니다.");
-        }
-      } else {
-        setError("비밀번호 변경에 실패했습니다.");
-      }
-    } finally {
-      setLoading(false);
-    }
+    await handleResetPassword(newPassword);
   };
 
   // 검증 중일 때 로딩 표시
@@ -111,7 +85,7 @@ function ResetPasswordContent() {
         </div>
 
         {/* Submit Button - Fixed at Bottom */}
-        <form onSubmit={handleResetPassword}>
+        <form onSubmit={handleSubmit}>
           <BottomButton
             type="submit"
             disabled={loading || !isFormValid}
@@ -127,7 +101,13 @@ function ResetPasswordContent() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="flex flex-1 items-center justify-center">로딩 중...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center">
+          로딩 중...
+        </div>
+      }
+    >
       <ResetPasswordContent />
     </Suspense>
   );

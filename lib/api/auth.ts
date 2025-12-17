@@ -77,3 +77,14 @@ export async function sendPasswordResetEmail(email: string) {
 
   if (error) throw error;
 }
+
+/**
+ * 비밀번호를 업데이트합니다.
+ */
+export async function updatePassword(password: string) {
+  const supabase = createClient();
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) throw error;
+}
