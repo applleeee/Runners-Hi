@@ -5,11 +5,8 @@ import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { toPng } from "html-to-image";
 import { Header } from "@/components/common/Header";
 import { BottomButton } from "@/components/common/BottomButton";
-import {
-  DownloadPreview,
-  OUTPUT_WIDTH,
-  OUTPUT_HEIGHT,
-} from "@/components/features/download/DownloadPreview";
+import { DownloadPreview } from "@/components/features/download/DownloadPreview";
+import { ScaledPreview } from "@/components/features/download/ScaledPreview";
 import { generateDownloadFilename } from "@/lib/utils/image-utils";
 import { usePostDetail } from "@/lib/hooks/post/usePostDetail";
 
@@ -108,18 +105,9 @@ export default function DownloadPage() {
             </button>
           </div>
         ) : (
-          <div
-            className="relative w-full overflow-hidden"
-            style={{
-              aspectRatio: `${OUTPUT_WIDTH} / ${OUTPUT_HEIGHT}`,
-            }}
-          >
-            <DownloadPreview
-              imageUrl={imageUrl}
-              content={content}
-              mode="preview"
-            />
-          </div>
+          <ScaledPreview>
+            <DownloadPreview imageUrl={imageUrl} content={content} />
+          </ScaledPreview>
         )}
       </div>
 
@@ -138,7 +126,6 @@ export default function DownloadPage() {
           ref={downloadRef}
           imageUrl={imageUrl}
           content={content}
-          mode="download"
         />
       </div>
     </div>
