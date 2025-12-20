@@ -48,6 +48,7 @@ interface ContentTypeRow {
 interface UserRow {
   id: string;
   nickname: string;
+  profile_image_url: string | null;
 }
 
 export interface FeedContent {
