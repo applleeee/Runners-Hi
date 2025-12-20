@@ -35,7 +35,11 @@ export function useResetPassword() {
     } catch (err: unknown) {
       if (err instanceof AuthApiError) {
         if (err.code === "same_password") {
-          setError("이전 비밀번호와 다른 비밀번호를 입력해주세요.");
+          // 동일 비밀번호도 허용 - 에러 대신 성공 처리
+          alert("비밀번호가 재설정 되었습니다.");
+          await signOut();
+          router.push("/login");
+          return;
         } else {
           setError("비밀번호 변경에 실패했습니다.");
         }
