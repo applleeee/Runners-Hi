@@ -78,6 +78,7 @@ export interface ContentDetail {
   user: {
     id: string;
     nickname: string;
+    profile_image_url: string | null;
   };
   createdAt: Date;
 }
@@ -553,7 +554,8 @@ export async function getContentById(id: string): Promise<ContentDetail> {
       ),
       User!inner (
         id,
-        nickname
+        nickname,
+        profile_image_url
       ),
       ContentLocation!inner (
         type,
@@ -660,6 +662,7 @@ export async function getContentById(id: string): Promise<ContentDetail> {
     user: {
       id: user.id,
       nickname: user.nickname,
+      profile_image_url: user.profile_image_url,
     },
     createdAt: new Date(data.created_at),
   };

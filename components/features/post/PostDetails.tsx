@@ -1,5 +1,6 @@
 import { type ContentDetail } from "@/lib/api/content";
 import Link from "next/link";
+import { ProfileImage } from "@/components/common/ProfileImage";
 
 interface PostDetailsProps {
   content: ContentDetail;
@@ -25,11 +26,11 @@ export function PostDetails({ content }: PostDetailsProps) {
         href={`/profile/${content.user.id}`}
         className="flex flex-col items-center gap-2 pt-4 cursor-pointer hover:opacity-80 transition-opacity"
       >
-        <div className="h-14 w-14 rounded-full bg-(--sub-color) flex items-center justify-center">
-          <span className="text-lg font-semibold text-(--black)">
-            {content.user.nickname[0]}
-          </span>
-        </div>
+        <ProfileImage
+          src={content.user.profile_image_url}
+          fallbackText={content.user.nickname}
+          size={56}
+        />
         <span className="text-sm font-semibold text-(--black)">
           {content.user.nickname}
         </span>
