@@ -8,6 +8,7 @@ const publicPaths = {
   // 패턴 매칭이 필요한 경로 (동적 라우트)
   patterns: [
     /^\/posts\/(?!new)[^/]+$/, // /posts/123 형태만 (컨텐츠 상세), /posts/new 제외
+    /^\/profile\/[^/]+$/, // /profile/[userId] (유저 프로필)
   ],
 };
 
