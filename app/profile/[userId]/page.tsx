@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
     if (data) {
       return {
-        title: `${data.nickname}님의 프로필 | Runner's Hi`,
+        title: `${data.nickname}님의 프로필 | 러너스하이`,
         description: `${data.nickname}님의 러닝 기록을 확인해보세요.`,
       };
     }
@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: "프로필 | Runner's Hi",
+    title: "프로필 | 러너스하이",
     description: "러닝 기록을 공유하는 다이어리형 SNS",
   };
 }

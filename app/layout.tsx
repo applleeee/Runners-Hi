@@ -14,8 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Runner's Hi",
-  description: "러닝 기록을 공유하는 다이어리형 SNS",
+  title: "러너스하이",
+  description: "러닝기록 및 코스를 찾아보세요",
+  keywords: ["러닝", "러닝기록", "러닝코스", "러닝다이어리"],
 };
 
 export default function RootLayout({
