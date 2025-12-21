@@ -1,6 +1,6 @@
+import { ProfileImage } from "@/components/common/ProfileImage";
 import { type ContentDetail } from "@/lib/api/content";
 import Link from "next/link";
-import { ProfileImage } from "@/components/common/ProfileImage";
 
 interface PostDetailsProps {
   content: ContentDetail;
@@ -9,9 +9,6 @@ interface PostDetailsProps {
 export function PostDetails({ content }: PostDetailsProps) {
   return (
     <div className="space-y-4">
-      {/* 컨텐츠 제목 */}
-      <h2 className="text-base font-bold text-(--black)">{content.title}</h2>
-
       {/* 코멘트 */}
       {content.comment && (
         <div className="space-y-2">

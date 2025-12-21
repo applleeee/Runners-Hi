@@ -73,7 +73,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
         {isOwner ? (
           <Header
             variant="back-more"
-            title="러닝 기록"
+            title={content.title}
             className="bg-white/80 backdrop-blur-sm"
             onEdit={onEditClick}
             onDelete={onDeleteClick}
@@ -81,7 +81,7 @@ export function PostDetailContent({ id }: PostDetailContentProps) {
         ) : (
           <Header
             variant="back"
-            title="러닝 기록"
+            title={content.title}
             className="bg-white/80 backdrop-blur-sm"
           />
         )}
