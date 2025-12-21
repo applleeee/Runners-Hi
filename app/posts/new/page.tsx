@@ -70,7 +70,7 @@ export default function NewPostPage() {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".gpx"
+        accept=".gpx,application/gpx+xml,application/xml,text/xml"
         onChange={handleFileChange}
         className="hidden"
       />
