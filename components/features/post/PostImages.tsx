@@ -66,7 +66,7 @@ export function PostImages({ images, isOwner, content }: PostImagesProps) {
       >
         <CarouselContent>
           {images.map((image, index) => (
-            <CarouselItem key={index} className="basis-[85%]">
+            <CarouselItem key={index} className="basis-full">
               <div className="relative aspect-square overflow-hidden rounded-2xl bg-(--bg) shadow-[0px_4px_4px_0px_rgba(0,0,0,0.1)]">
                 <Image
                   src={image}
