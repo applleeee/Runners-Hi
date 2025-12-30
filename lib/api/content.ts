@@ -61,6 +61,14 @@ export interface FeedContent {
   locationName: string;
 }
 
+/** MAP 뷰용 콘텐츠 (경로 좌표 포함) */
+export interface MapFeedContent {
+  id: string;
+  title: string;
+  points: Array<{ lat: number; lng: number }>; // 경로 좌표 배열
+  startPoint: { lat: number; lng: number }; // 출발지 (마커용)
+}
+
 export interface ContentDetail {
   id: string;
   title: string;
@@ -300,6 +308,14 @@ export interface GetContentsParams {
   offset: number;
 }
 
+/** MAP 뷰용 콘텐츠 조회 파라미터 (페이지네이션 없음) */
+export interface GetContentsForMapParams {
+  locationId?: number | null;
+  typeIds?: number[];
+  distanceMin?: number | null;
+  distanceMax?: number | null;
+}
+
 /**
  * 콘텐츠 목록을 필터링하여 가져옵니다.
  * (무한 스크롤용)
@@ -382,6 +398,84 @@ export async function getContents(
       locationName: mainLocation?.Location?.name ?? "",
     };
   });
+}
+
+const MAP_CONTENTS_LIMIT = 100;
+
+/**
+ * MAP 뷰용 콘텐츠 목록을 가져옵니다.
+ * gpx_data를 포함하여 경로 좌표를 함께 조회합니다.
+ * 페이지네이션 없이 최대 100개까지 한 번에 로드합니다.
+ */
+export async function getContentsForMap(
+  params: GetContentsForMapParams
+): Promise<MapFeedContent[]> {
+  const supabase = createClient();
+
+  const { locationId, typeIds, distanceMin, distanceMax } = params;
+
+  // 기본 쿼리: Content + gpx_data 포함
+  let query = supabase
+    .from("Content")
+    .select(
+      `
+      id,
+      title,
+      gpx_data,
+      ContentLocation!inner (
+        type,
+        location_id
+      )
+    `
+    )
+    .eq("ContentLocation.type", "main");
+
+  // locationId 필터
+  if (locationId) {
+    query = query.eq("ContentLocation.location_id", locationId);
+  }
+
+  // typeIds 필터
+  if (typeIds && typeIds.length > 0) {
+    query = query.in("type_id", typeIds);
+  }
+
+  // 거리 필터
+  if (distanceMin !== null && distanceMin !== undefined) {
+    query = query.gte("total_distance", distanceMin);
+  }
+  if (distanceMax !== null && distanceMax !== undefined) {
+    query = query.lte("total_distance", distanceMax);
+  }
+
+  // 최신순 정렬 및 최대 개수 제한
+  query = query
+    .order("created_at", { ascending: false })
+    .limit(MAP_CONTENTS_LIMIT);
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+
+  // MapFeedContent 형태로 변환
+  return (data || [])
+    .map((item) => {
+      const gpxData = item.gpx_data as {
+        points?: Array<{ lat: number; lng: number }>;
+      } | null;
+      const points = gpxData?.points || [];
+
+      // 포인트가 없는 콘텐츠는 제외
+      if (points.length === 0) return null;
+
+      return {
+        id: item.id,
+        title: item.title,
+        points: points,
+        startPoint: points[0],
+      };
+    })
+    .filter((item): item is MapFeedContent => item !== null);
 }
 
 export interface UserStats {

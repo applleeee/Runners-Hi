@@ -4,8 +4,10 @@ import {
   ContentType,
   FeedContent,
   Location,
+  MapFeedContent,
   getContentTypesByParentId,
   getContents,
+  getContentsForMap,
   getMainLocations,
 } from "@/lib/api/content";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -29,6 +31,8 @@ export interface FeedFilter {
   distanceValue: string | null;
 }
 
+export type ViewMode = "map" | "card";
+
 interface UseFeedReturn {
   // 데이터
   contents: FeedContent[];
@@ -49,11 +53,20 @@ interface UseFeedReturn {
   // 액션
   loadMore: () => void;
   refresh: () => void;
+
+  // MAP/CARD 뷰 모드
+  viewMode: ViewMode;
+  setViewMode: (mode: ViewMode) => void;
+  mapContents: MapFeedContent[];
+  isLoadingMap: boolean;
 }
 
 const ITEMS_PER_PAGE = 10;
 
 export function useFeed(): UseFeedReturn {
+  // 뷰 모드 상태
+  const [viewMode, setViewMode] = useState<ViewMode>("map");
+
   // 필터 상태
   const [filter, setFilter] = useState<FeedFilter>({
     locationId: null,
@@ -65,6 +78,10 @@ export function useFeed(): UseFeedReturn {
   const [contents, setContents] = useState<FeedContent[]>([]);
   const [locations, setLocations] = useState<Location[]>([]);
   const [types, setTypes] = useState<ContentType[]>([]);
+
+  // MAP 뷰 데이터 상태
+  const [mapContents, setMapContents] = useState<MapFeedContent[]>([]);
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
 
   // 로딩 상태
   const [isLoading, setIsLoading] = useState(true);
@@ -144,10 +161,38 @@ export function useFeed(): UseFeedReturn {
   const loadContentsRef = useRef(loadContents);
   loadContentsRef.current = loadContents;
 
-  // 필터 변경 시 새로고침
+  // MAP 콘텐츠 로드
+  const loadMapContents = useCallback(async () => {
+    setIsLoadingMap(true);
+    try {
+      const { min, max } = getDistanceRange(filter.distanceValue);
+
+      const data = await getContentsForMap({
+        locationId: filter.locationId,
+        typeIds: filter.typeIds.length > 0 ? filter.typeIds : undefined,
+        distanceMin: min,
+        distanceMax: max,
+      });
+
+      setMapContents(data);
+    } catch (error) {
+      console.error("Failed to load map contents:", error);
+    } finally {
+      setIsLoadingMap(false);
+    }
+  }, [filter, getDistanceRange]);
+
+  const loadMapContentsRef = useRef(loadMapContents);
+  loadMapContentsRef.current = loadMapContents;
+
+  // 필터 변경 시 현재 viewMode에 따라 데이터 로드
   useEffect(() => {
-    loadContentsRef.current(true);
-  }, [filter.locationId, filter.typeIds, filter.distanceValue]);
+    if (viewMode === "map") {
+      loadMapContentsRef.current();
+    } else {
+      loadContentsRef.current(true);
+    }
+  }, [filter.locationId, filter.typeIds, filter.distanceValue, viewMode]);
 
   // 필터 설정 함수들
   const setLocationId = useCallback((id: number | null) => {
@@ -187,5 +232,10 @@ export function useFeed(): UseFeedReturn {
     hasMore,
     loadMore,
     refresh,
+    // MAP/CARD 뷰 모드
+    viewMode,
+    setViewMode,
+    mapContents,
+    isLoadingMap,
   };
 }

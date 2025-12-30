@@ -2,9 +2,11 @@
 
 import { FloatingButton } from "@/components/common/FloatingButton";
 import { Header } from "@/components/common/Header";
-import { FeedCard } from "@/components/features/feed/FeedCard";
+import { FeedCardOverlay } from "@/components/features/feed/FeedCardOverlay";
 import { FilterDropdown } from "@/components/features/feed/FilterDropdown";
 import { TypeFilter } from "@/components/features/feed/TypeFilter";
+import { ViewTabs } from "@/components/features/feed/ViewTabs";
+import { MultiRouteMap } from "@/components/features/running/MultiRouteMap";
 import { DISTANCE_OPTIONS, useFeed } from "@/lib/hooks/feed/useFeed";
 import { useInfiniteScroll } from "@/lib/hooks/useInfiniteScroll";
 
@@ -21,6 +23,11 @@ export default function Home() {
     isLoadingMore,
     hasMore,
     loadMore,
+    // MAP/CARD 뷰 모드
+    viewMode,
+    setViewMode,
+    mapContents,
+    isLoadingMap,
   } = useFeed();
 
   const loadMoreRef = useInfiniteScroll({
@@ -81,37 +88,65 @@ export default function Home() {
             variant="compact"
           />
         </div>
+
+        {/* MAP/CARD 탭 */}
+        <div className="mt-3">
+          <ViewTabs viewMode={viewMode} onChange={setViewMode} />
+        </div>
       </div>
 
-      {/* 피드 목록 */}
+      {/* 콘텐츠 영역 - 뷰 모드에 따라 분기 */}
       <div className="flex-1">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <p className="text-(--sub-text)">불러오는 중...</p>
-          </div>
-        ) : contents.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-(--sub-text)">등록된 러닝 기록이 없습니다.</p>
-            <p className="mt-1 text-sm text-(--sub-text)">
-              첫 번째 러닝 기록을 등록해보세요!
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-3 p-4">
-            {contents.map((content) => (
-              <FeedCard key={content.id} content={content} />
-            ))}
-          </div>
-        )}
-
-        {/* 무한 스크롤 트리거 */}
-        <div ref={loadMoreRef} className="h-10">
-          {isLoadingMore && (
-            <div className="flex items-center justify-center py-4">
-              <p className="text-sm text-(--sub-text)">더 불러오는 중...</p>
+        {viewMode === "map" ? (
+          // MAP 뷰
+          isLoadingMap ? (
+            <div className="flex items-center justify-center py-20">
+              <p className="text-(--sub-text)">지도를 불러오는 중...</p>
             </div>
-          )}
-        </div>
+          ) : mapContents.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <p className="text-(--sub-text)">등록된 러닝 기록이 없습니다.</p>
+              <p className="mt-1 text-sm text-(--sub-text)">
+                첫 번째 러닝 기록을 등록해보세요!
+              </p>
+            </div>
+          ) : (
+            <div className="h-[calc(100dvh-280px)]">
+              <MultiRouteMap contents={mapContents} className="h-full w-full" />
+            </div>
+          )
+        ) : (
+          // CARD 뷰
+          <>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <p className="text-(--sub-text)">불러오는 중...</p>
+              </div>
+            ) : contents.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <p className="text-(--sub-text)">등록된 러닝 기록이 없습니다.</p>
+                <p className="mt-1 text-sm text-(--sub-text)">
+                  첫 번째 러닝 기록을 등록해보세요!
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 p-4">
+                {contents.map((content) => (
+                  <FeedCardOverlay key={content.id} content={content} />
+                ))}
+              </div>
+            )}
+
+            {/* 무한 스크롤 트리거 (CARD 뷰에서만) */}
+            <div ref={loadMoreRef} className="h-10">
+              {isLoadingMore && (
+                <div className="flex items-center justify-center py-4">
+                  <p className="text-sm text-(--sub-text)">더 불러오는 중...</p>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* FAB 버튼 */}
